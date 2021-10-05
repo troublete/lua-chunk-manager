@@ -37,7 +37,7 @@ return function()
 	if fs.is_file(map_file) then
 		print('mapfile exists.')
 	else
-		if fs.touch('map_file') then
+		if fs.touch(map_file) then
 			print('mapfile created.')
 		else
 			print('mapfile could not be created.')

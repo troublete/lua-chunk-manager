@@ -18,6 +18,6 @@ return function()
 	end
 
 	if fs.remove_directory(lib_path) then
-		print('lib directory removed.')
+		print('lib path removed.')
 	end
 end

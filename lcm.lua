@@ -24,6 +24,7 @@ local fs = require('src.cli')
 -- lcm files and directories
 cli:command('clean', require('cmd.clean'))
 cli:command('init', require('cmd.init'))
+cli:command('install', require('cmd.install'))
 
 cli:run()
 
