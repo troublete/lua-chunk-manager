@@ -15,3 +15,7 @@
 	- `tar`
 	- `mv`
 - Lua
+
+## Todo
+
+- implement loading of library files; single file is working... but what if the lib uses references files in itself
