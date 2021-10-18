@@ -8,17 +8,22 @@ local function base_path(path)
 	end
 end
 
--- make the paths, relevant global
-current_directory = os.getenv('PWD')
-lcm_directory = base_path(debug.getinfo(1).short_src)
-lib_path = current_directory .. '/lib/'
+-- set the path relevant global
+-- project paths
+current_directory = os.getenv('PWD') -- the directory of the project
+lib_path = current_directory .. '/lib/' -- the lib path in the project
+
+-- lcm paths
+lcm_directory = base_path(debug.getinfo(1).short_src) -- the directory of lcm
 
 -- reference the current lcm path so the
 -- support packages can be loaded
 package.path = package.path .. ';' .. lcm_directory .. '?.lua'
 
-local cli = require('src.cli')
-local fs = require('src.cli')
+local cli = require('src.cli') -- tool wrapper
+cli:set_flag_map({
+	['help']='h'
+})
 
 -- init command; creates idempotent
 -- lcm files and directories
