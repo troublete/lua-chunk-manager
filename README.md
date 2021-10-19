@@ -18,4 +18,7 @@
 
 ## Todo
 
-- implement loading of library files; single file is working... but what if the lib uses references files in itself
+- implement loading of library files; single file is working... but what if
+  the lib uses references files in itself
+- implement toolkit for +register_strategy+ to use (e.g. check if directory
+  exists, create dir, execute download)

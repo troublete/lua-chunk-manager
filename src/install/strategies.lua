@@ -36,4 +36,29 @@ function strategies.private_github(lib_path, handle, user)
 	return strategies.curl(lib_path, handle, 'http://github.com/' .. handle .. '/tarball/master', user)
 end
 
+-- this allows a local lib to be symlinked; it is to be noted, that only
+-- the files are symlinked NOT the directory
+-- therefore a chunk update is needed when then file structure
+-- changes of the source directory
+function strategies.symlink(lib_path, handle, source_directory)
+	local path = lib_path .. '/' .. handle
+
+	if fs.is_directory(path) then
+		print('"' .. handle .. '" already exists.')
+		return
+	end
+
+	if not fs.create_path(path) then
+		print('directory for "' .. handle .. '" can not be created.')
+	end
+
+	print('ln -s ' .. source_directory .. '/* ' .. path .. '/')
+
+	if os.execute('ln -s ' .. source_directory .. '/* ' .. path .. '/') then
+		print('"' .. handle .. '" symlink for files created.')
+	end
+
+	return path
+end
+
 return strategies

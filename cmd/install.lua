@@ -36,6 +36,20 @@ return {
 
 		local install_sandbox = {}
 
+		-- allow some deps to be used
+
+		function install_sandbox.exec(cmd)
+			return os.execute(cmd)
+		end
+
+		function install_sandbox.is_directory(path)
+			return fs.is_directory(path)
+		end
+
+		function install_sandbox.print(...)
+			return print(table.unpack(arg))
+		end
+
 		-- this function allows to define own strategies which
 		-- then can be used in the processing of the chunkfile
 		function install_sandbox.register_strategy(name, func)
@@ -65,6 +79,15 @@ return {
 
 			if not plan:contains(handle) then
 				table.insert(plan, {strategy='private_github', handle=handle, args=args})
+			end
+		end
+
+		-- allow local symlinks
+		function install_sandbox.symlink(args)
+			local handle = args[1]
+
+			if not plan:contains(handle) then
+				table.insert(plan, {strategy='symlink', handle=handle, args=args})
 			end
 		end
 
