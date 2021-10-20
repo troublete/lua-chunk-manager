@@ -38,18 +38,6 @@ return {
 
 		-- allow some deps to be used
 
-		function install_sandbox.exec(cmd)
-			return os.execute(cmd)
-		end
-
-		function install_sandbox.is_directory(path)
-			return fs.is_directory(path)
-		end
-
-		function install_sandbox.print(...)
-			return print(table.unpack(arg))
-		end
-
 		-- WIP FEATURE
 		-- this function allows to define own strategies which
 		-- then can be used in the processing of the chunkfile

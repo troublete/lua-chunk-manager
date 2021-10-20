@@ -41,4 +41,20 @@ function util.download_and_unpack(url, target, user)
 	return true
 end
 
+function util.p(...)
+	print(table.concat(table.pack(...), ' '))
+end
+
+function util.quote(str)
+	return '"' .. str .. '"'
+end
+
+function util.tpl_instruction_load(handle, path)
+	return 'load {\'' .. handle .. '\', \'' .. path .. '\' }'
+end
+
+function util.tpl_instruction_module(handle, path)
+	return 'module {\'' .. handle .. '\', \'' .. path .. '\' }'
+end
+
 return util

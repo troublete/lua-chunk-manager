@@ -16,43 +16,25 @@ minutes or quickly distributing a lua script across a few computers.
 
 ## Chunkfiles
 
-A `chunkfile.lua` is the essential part of any piece of code which shall be
-importable. It is a configuration which defines in easy commands what the
-chunk requires and what it exposes. 
+A `chunkfile.lua` is the essential part of defining exports and dependencies,
+but they are optional if you want to require an existing library which simply
+does not have a `chunkfile.lua` the loader will still find it by the handle
+provided.
 
 Every `chunkfile.lua` is execute in a sandbox-ed environment; and only the
-exposed functions by the LCM are available. So there should be little
+exposed LCM functionality is available. So there should be little
 security problems.
 
-The minimum content of a `chunkfile.lua`; is one `expose` definition.
+### Using a chunk/library/repo/...
 
-```lua
--- `expose` defines an module export of the chunk; exports are crucial – without any exports,
--- the library can not be used in any way, shape or form
+- handle in strategy is converted to '.'-notation
+- require `lib.load`; then require everything you want
 
-expose { 'my/library', 'relative/path/to/entrypoint.lua' }
+### Exposing a chunk/library/repo/...
 
--- it is also possible to omit the path; then this happens it is assumed that an `init.lua` file is present
--- in the directory root (which is consistent with the workings of the lua searchers)
-
-expose { 'my/other/lib' }
-
--- when your piece of code depends on several other chunks it is possible
--- to require them by using the following commands as much as needed
---
--- with `github` it is possible to require a library from github; only the handle is required
-
-github { 'troublete/lua-chunk-manager' }
-
--- with `github_private` it is possible to require a private repo from github; handle and user are required
-
-github_private { 'troublete/lua-chunk-manager', 'username:api_token' }
-
--- if u have a local lib or want to test you lib locally use `symlink`; handle and absolute path are required
--- it is to be noted, that all FILES are symlinked not the directory set
-
-symlink { 'local/lib', '/absolute/path/to/lib/' }
-```
+- export without chunkfile
+- single export with `export{file_path}`
+- multi export with `export{file_path,name}`
 
 ## Prerequisits
 
@@ -74,8 +56,8 @@ symlink { 'local/lib', '/absolute/path/to/lib/' }
 
 ## Todo
 
-- allow pathless exports
 - implement toolkit for +register_strategy+ to use (e.g. check if directory
   exists, create dir, execute download)
 - implement "bin" install
 - implement "global" install and reuse
+- implement runtime cache
