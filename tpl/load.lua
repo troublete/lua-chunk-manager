@@ -23,6 +23,8 @@ local function clean_path(path)
 	return path:gsub('%.%/', '')
 end
 
+local home = os.getenv('HOME')
+
 -- this table holds all root directory paths from all chunks
 _G['lcm_modules'] = {}
 
@@ -57,7 +59,7 @@ debug.sethook(function(_event)
 	end
 end, 'c')
 
--- require is patched to allow relative require calls within importet chunks
+-- require is patched to allow relative require calls within imported chunks
 local lr = require
 require = function(modname)
 	local module_name = modname
@@ -70,6 +72,9 @@ require = function(modname)
 	end
 end
 
+-- allow global lcm depot to be used
+package.path = package.path .. ';' .. home .. '/.lcm/?.lua'
+
 local loader = {}
 function loader.load(args)
 	local name, path = table.unpack(args)
@@ -80,23 +85,30 @@ function loader.module(args)
 	local name, path = table.unpack(args)
 	_G['lcm_modules'][name] = path
 
-	-- register init in case it is available to allow
-	-- zero export modules
+	-- check for init.lua; allows zero export modules
 	local init = loadfile(path .. '/init.lua', 't')
 	if init then
 		package.loaded[name] = init()
 	end
 end
 
-lcm_print_modules = function()
-	for k, v in pairs(package.loaded) do
-		print(k, v)
-	end
+local lcm_global_loaded = false
+
+-- try to load global lcm depot
+local global_map = loadfile(home .. '/.lcm/lib/map.lua', 't', loader)
+print(global_map, home .. '/.lcm/lib/map.lua')
+if global_map then
+	global_map()
+	lcm_global_loaded = true
 end
 
 local map = loadfile(mapfile, 't', loader)
 if map then
 	map()
 else
-	error('mapfile could not be loaded.')
+	if not lcm_global_loaded then
+		error('no local or global mapfile could be loaded.')
+	end
 end
+
+

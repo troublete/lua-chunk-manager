@@ -38,14 +38,14 @@ local function parsed_arguments(flag_map)
 	return args
 end
 
-local function print_help(h)
+local function print_help(h, flag_map)
 	print('', h.handle .. ' – ' .. h.title)
 
 	if h.flags then
 		print('', 'FLAGS')
 		for flag, def in pairs(h.flags) do
-			if def.short then
-				print('', '', '--' .. flag .. ' (-' .. def.short ..')')
+			if flag_map[flag] then
+				print('', '', '--' .. flag .. ', -' .. flag_map[flag])
 			else
 				print('', '', '--' .. flag)
 			end
@@ -79,13 +79,13 @@ function cli:run()
 
 	if self._commands[cmd] and p:has_flag('help') then
 		print('HELP')
-		return print_help(self._commands[cmd].help)
+		return print_help(self._commands[cmd].help, self._flag_map)
 	end
 
 	if p:has_flag('help') then
 		print('COMMANDS')
 		for _, c in pairs(self._commands) do
-			print_help(c.help)
+			print_help(c.help, self._flag_map)
 			print()
 		end
 	end

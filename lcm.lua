@@ -27,7 +27,8 @@ package.path = package.path .. ';' .. lcm_directory .. '?.lua'
 
 local cli = require('src.cli') -- tool wrapper
 cli:set_flag_map({
-	['help']='h'
+	['help']='h',
+	['global']='g'
 })
 
 cli:command('clean', require('cmd.clean'))

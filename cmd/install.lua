@@ -6,6 +6,10 @@ local strategies = require('src.install.strategies')
 
 return {
 	run=function(args)
+		if args:has_flag('global') then
+			lib_path = os.getenv('HOME') .. '/.lcm/lib/'
+		end
+
 		local chunkfile_path = current_directory .. '/chunkfile.lua'
 
 		if not fs.is_file(chunkfile_path) then
@@ -90,6 +94,11 @@ return {
 	end,
 	help={
 		handle='install',
-		title='install LCM deps'
+		title='install LCM deps',
+		flags={
+			global={
+				desc='runs an install command on global depot'
+			}
+		}
 	}
 }

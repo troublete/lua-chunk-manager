@@ -2,6 +2,10 @@ local fs = require('src.fs')
 
 return {
 	run=function(args)
+		if args:has_flag('global') then
+			lib_path = os.getenv('HOME') .. '/.lcm/lib/'
+		end
+
 		local chunkfile_path = current_directory .. '/chunkfile.lua'
 		local load_file = lib_path .. '/load.lua'
 		local map_file = lib_path .. '/map.lua'
@@ -41,6 +45,9 @@ return {
 		flags={
 			deps={
 				desc='purge only library contents'
+			},
+			global={
+				desc='runs a clean command on global depot'
 			}
 		}
 	}
