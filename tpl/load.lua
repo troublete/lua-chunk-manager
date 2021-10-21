@@ -96,7 +96,6 @@ local lcm_global_loaded = false
 
 -- try to load global lcm depot
 local global_map = loadfile(home .. '/.lcm/lib/map.lua', 't', loader)
-print(global_map, home .. '/.lcm/lib/map.lua')
 if global_map then
 	global_map()
 	lcm_global_loaded = true

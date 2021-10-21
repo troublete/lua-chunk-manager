@@ -139,4 +139,14 @@ function fs.read_directory(root)
 	return entries
 end
 
+function fs.to_file(str, path)
+	local f = io.open(path, 'w')
+	f:write(str)
+	return f:close()
+end
+
+function fs.allow_exec(path)
+	return os.execute('chmod +x ' .. path)
+end
+
 return fs

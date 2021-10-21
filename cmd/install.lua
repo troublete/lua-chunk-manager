@@ -1,4 +1,5 @@
 local fs = require('src.fs')
+local util = require('src.util')
 local process = require('src.install.process')
 local strategies = require('src.install.strategies')
 
@@ -82,6 +83,34 @@ return {
 			if not plan:contains(handle) then
 				table.insert(plan, {strategy='symlink', handle=handle, args=args})
 			end
+		end
+
+		-- allow the creation of execs
+		function install_sandbox.bin(args)
+			local file, name = table.unpack(args)
+			local bin_path = current_directory .. '/bin/'
+
+			local handle = file:match('[^/]+%.lua'):gsub('(.+)%.lua$', '%1')
+			local file_path = bin_path .. (name or handle)
+
+
+			if not fs.is_directory(bin_path) then
+				if not fs.create_path(bin_path) then
+					util.p('bin path could not be created.')
+					return
+				end
+			end
+
+			if not fs.touch(file_path) then
+				util.p('bin file for', util.quote(file), 'could not be created.')
+				return
+			end
+
+			fs.to_file(util.tpl_bin(current_directory, file), file_path)
+			fs.allow_exec(file_path)
+
+			util.p('bin file for', util.quote(name or handle), ' created')
+			return
 		end
 
 		local instructions = loadfile(chunkfile_path, 't', install_sandbox)

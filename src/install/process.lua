@@ -47,6 +47,8 @@ return function(lib_path, plan, strategies, sandbox)
 					fs.append_to_file(line, lib_path .. '/map.lua')
 				end
 
+				
+
 				local instructions = loadfile(path .. '/chunkfile.lua', 't', sandbox)
 				if instructions then
 					instructions()

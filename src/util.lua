@@ -57,4 +57,23 @@ function util.tpl_instruction_module(handle, path)
 	return 'module {\'' .. handle .. '\', \'' .. path .. '\' }'
 end
 
+function util.tpl_bin(...)
+	local path, file = ...
+	local vars = {path=path, file=file}
+	local tpl = [[
+#!/usr/bin/env lua
+
+package.path = package.path .. ';{path}/?.lua'
+
+require('lib.load')
+dofile('{file}')
+]]
+
+	local bin = tpl:gsub('%{(%w+)%}', function(match)
+		return vars[match]
+	end)
+
+	return bin
+end
+
 return util

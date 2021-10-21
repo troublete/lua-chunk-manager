@@ -2,3 +2,5 @@ lib/*
 chunkfile.lua
 !tpl/chunkfile.lua
 test.lua
+bin/*
+test.lua
