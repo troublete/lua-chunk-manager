@@ -106,7 +106,7 @@ return {
 				return
 			end
 
-			fs.to_file(util.tpl_bin(current_directory, file), file_path)
+			fs.to_file(util.tpl_bin(current_directory, current_directory .. '/' .. file), file_path)
 			fs.allow_exec(file_path)
 
 			util.p('bin file for', util.quote(name or handle), ' created')
