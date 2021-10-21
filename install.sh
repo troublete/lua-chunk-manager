@@ -21,4 +21,4 @@ fi
 
 source ~/.lcm/sh-config
 echo 'setting up lcm for usage...'
-lcm install -g
+lua lcm.lua install -g
