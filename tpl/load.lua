@@ -73,7 +73,7 @@ end
 local loader = {}
 function loader.load(args)
 	local name, path = table.unpack(args)
-	package.loaded[name] = (loadfile(path, 't'))()
+	package.loaded[name] = dofile(path)
 end
 
 function loader.module(args)
