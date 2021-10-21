@@ -58,6 +58,10 @@ security problems.
 
 - implement toolkit for +register_strategy+ to use (e.g. check if directory
   exists, create dir, execute download)
-- implement "bin" install
-- implement "global" install and reuse
 - implement runtime cache
+- implement 'add' command
+- implement direct install when within lib and hit lcm install
+- implement 'init lib mode' (omit loader and map and lib)
+- allow import with alias (to allow multi version, etc)
+- clean up
+- docs
