@@ -67,3 +67,4 @@ security problems.
 - docs
 - make windows able
 - rebuild fs to use src.log
+- add command to inspect installed modules
