@@ -1,132 +1,108 @@
+local requires = require('src.requires')
+local strategies = require('src.strategies')
+local plan = require('src.plan')
+local log = require('src.log')()
 local fs = require('src.fs')
-local util = require('src.util')
-local process = require('src.install.process')
-local strategies = require('src.install.strategies')
-
--- available in global: lib_path
+local template = require('src.template')
 
 return {
 	run=function(args)
 		if args:has_flag('global') then
-			lib_path = os.getenv('HOME') .. '/.lcm/lib/'
+			current_directory = os.getenv('HOME') .. '/.lcm/'
 		end
 
-		local chunkfile_path = current_directory .. '/chunkfile.lua'
+		strategies:set_current_directory(current_directory)
 
-		if not fs.is_file(chunkfile_path) then
-			print('no chunkfile found.')
-			return
+		if args:has_flag('debug') then
+			requires:unsilence()
 		end
 
-		local plan = {} -- the list of dependencies to be loaded
+		if args:has_flag('silent') then
+			log:silence()
+			plan:silence()
+			strategies:silence()
+		end
 
-		-- this method checks if a certain chunk is already registered
-		-- in the plan; to be used to make sure that only unique handles
-		-- are added to avoid duplications in load paths
-		--
-		-- therefore it is important for chunkfile defs
-		-- to contain as first argument a handle; which is references for loading
-		-- and to check uniqueness.
-		-- If multiple versions of the same lib are needed, the handle can be used
-		-- to allow this.
-		function plan:contains(handle)
-			for _, entry in ipairs(plan) do
-				if entry.handle == handle then
-					return true
+		local _, chunkfile_path = requires:chunkfile(current_directory)
+
+		-- set allowed functions
+		local sandbox = {}
+
+		-- ignore all not defined functions
+		setmetatable(sandbox, {__index=function() return function() end end})
+
+		function sandbox.github(args)
+			plan:add('github', args)
+		end
+		function sandbox.symlink(args)
+			plan:add('symlink', args)
+		end
+		function sandbox.bin(args)
+			plan:add('bin', args)
+		end
+
+		local run_chunkfile = loadfile(chunkfile_path, 't', sandbox)
+		if not run_chunkfile then
+			log:error(string.format('"%s" can not be read', chunkfile_path))
+		end
+		run_chunkfile()
+
+		plan:each(function(strategy, namespace, args)
+			local namespace_path = strategies:call(strategy, namespace, args)
+
+			if namespace_path then
+				-- register module in load file
+				local _, map_path = requires:mapfile(current_directory)
+
+				if not fs.append_to_file(map_path, template.module_instruction(namespace, namespace_path)) then
+					log:error(string.format('library registration for "%s" failed', namespace))
+				else
+					log:print(string.format('library "%s" registered', namespace))
+				end
+
+				-- extend plan if dependency contains a chunkfile
+				-- and acknowledge exports
+				local code, chunkfile_path = requires:chunkfile(namespace_path, true) 
+
+				local function export(args)
+					local file, name = table.unpack(args)
+
+					if name then
+						namespace = namespace .. '.' .. name
+					end
+
+					if not fs.append_to_file(map_path, template.load_instruction(namespace, namespace_path .. '/' .. file)) then
+						log:error(string.format('export registration for "%s" failed', namespace))
+					else
+						log:print(string.format('export "%s" for "%s" registered', name or file, namespace))
+					end				
+				end
+
+				-- allow both names
+				sandbox.export = export
+				sandbox.exports = export
+
+				if code == requires.EXISTS then
+					local run_child_chunkfile = loadfile(chunkfile_path, 't', sandbox)
+					if run_child_chunkfile then
+						run_child_chunkfile()
+					end
 				end
 			end
-
-			return false
-		end
-
-		local install_sandbox = {}
-
-		-- allow some deps to be used
-
-		-- WIP FEATURE
-		-- this function allows to define own strategies which
-		-- then can be used in the processing of the chunkfile
-		-- function install_sandbox.register_strategy(name, func)
-		-- 	strategies[name] = func
-
-		-- 	install_sandbox[name] = function(args)
-		-- 		local handle = args[1]
-
-		-- 		if not plan:contains(handle) then
-		-- 			table.insert(plan, {strategy=name, handle=handle, args=args})
-		-- 		end
-		-- 	end
-		-- end
-
-		-- allows github to be used as strategy
-		function install_sandbox.github(args)
-			local handle = args[1]
-
-			if not plan:contains(handle) then
-				table.insert(plan, {strategy='github', handle=handle, args=args})
-			end
-		end
-
-		-- allows private github to be used as strategy
-		function install_sandbox.private_github(args)
-			local handle = args[1]
-
-			if not plan:contains(handle) then
-				table.insert(plan, {strategy='private_github', handle=handle, args=args})
-			end
-		end
-
-		-- allow local symlinks
-		function install_sandbox.symlink(args)
-			local handle = args[1]
-
-			if not plan:contains(handle) then
-				table.insert(plan, {strategy='symlink', handle=handle, args=args})
-			end
-		end
-
-		-- allow the creation of execs
-		function install_sandbox.bin(args)
-			local file, name = table.unpack(args)
-			local bin_path = current_directory .. '/bin/'
-
-			local handle = file:match('[^/]+%.lua'):gsub('(.+)%.lua$', '%1')
-			local file_path = bin_path .. (name or handle)
-
-
-			if not fs.is_directory(bin_path) then
-				if not fs.create_path(bin_path) then
-					util.p('bin path could not be created.')
-					return
-				end
-			end
-
-			if not fs.touch(file_path) then
-				util.p('bin file for', util.quote(file), 'could not be created.')
-				return
-			end
-
-			fs.to_file(util.tpl_bin(current_directory, current_directory .. '/' .. file), file_path)
-			fs.allow_exec(file_path)
-
-			util.p('bin file for', util.quote(name or handle), ' created')
-			return
-		end
-
-		local instructions = loadfile(chunkfile_path, 't', install_sandbox)
-		if instructions then
-			instructions() -- chunkfile is read; and interepreted (i.e. strats registered; chunks added to be fetched)
-			process(lib_path, plan, strategies, install_sandbox) -- run recursive fetching of required chunks
-		else 
-			print('chunkfile can not be read.')
-		end
+		end)
 	end,
 	help={
 		handle='install',
-		title='install LCM deps',
+		title='retrieves and sets up deps',
 		flags={
 			global={
-				desc='runs an install command on global depot'
+				desc='run install in global lcm depot'
+			},
+			silent={
+				desc='omit all output'
+			},
+			debug={
+				desc='extends output to be more intelligble'
 			}
 		}
 	}

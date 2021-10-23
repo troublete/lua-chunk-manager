@@ -1,7 +1,7 @@
 -- HELPER
 -- flag map requires format {*flag*=*flag-short*}
 local function parsed_arguments(flag_map)
-	local args = {flags={}, args={}}
+	local args = {flags={}, args={}, named_args={}}
 	local flag_map = flag_map or {}
 
 	for k, v in pairs(arg) do 
@@ -18,7 +18,14 @@ local function parsed_arguments(flag_map)
 			end
 
 			if single_pre == '-' and double_pre == '--' then -- if flag, use as is
-					args.flags[string.sub(v, 3)] = true
+				local flag = string.sub(v, 3)
+				local name, value = flag:match('^(.+)%=(.+)$')
+
+				args.flags[flag] = true
+
+				if name and value then
+					args.named_args[name] = value
+				end
 			end
 
 			if single_pre ~= '-' and double_pre ~= '--' then -- in any other case, use as arguments
@@ -38,11 +45,17 @@ local function parsed_arguments(flag_map)
 	return args
 end
 
-local function print_help(h, flag_map)
-	print('', h.handle .. ' – ' .. h.title)
+local function print_help(h, flag_map, omit_handle)
+	if not omit_handle then
+		print('', h.handle)
+	else
+		print('')
+	end
+	print('\t', h.title)
 
 	if h.flags then
-		print('', 'FLAGS')
+		print('')
+		print('')
 		for flag, def in pairs(h.flags) do
 			if flag_map[flag] then
 				print('', '', '--' .. flag .. ', -' .. flag_map[flag])
@@ -65,7 +78,15 @@ end
 
 -- append new command to cli
 function cli:command(name, module)
-	self._commands[name] = module
+	if type(name) == 'string' then
+		self._commands[name] = module
+	end
+
+	if type(name) == 'table' then
+		for _, v in ipairs(name) do
+			self._commands[v] = module
+		end
+	end
 end
 
 -- run command
@@ -78,12 +99,14 @@ function cli:run()
 	end
 
 	if self._commands[cmd] and p:has_flag('help') then
-		print('HELP')
-		return print_help(self._commands[cmd].help, self._flag_map)
+		print(string.format('Usage: lcm %s [args, flags...]', cmd))
+		return print_help(self._commands[cmd].help, self._flag_map, true)
 	end
 
 	if p:has_flag('help') then
-		print('COMMANDS')
+		print('Usage: lcm <command> [args, flags...]')
+		print('Available commands:')
+		print('')
 		for _, c in pairs(self._commands) do
 			print_help(c.help, self._flag_map)
 			print()

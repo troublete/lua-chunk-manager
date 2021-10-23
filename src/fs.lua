@@ -20,6 +20,16 @@ function fs.is_directory(path)
 	end
 end
 
+function fs.is_symlink(path)
+	local ok = os.execute('test -L ' .. path)
+
+	if ok then
+		return true
+	else
+		return false
+	end
+end
+
 function fs.create_path(path)
 	local ok = os.execute('mkdir -p ' .. path)
 
@@ -28,6 +38,45 @@ function fs.create_path(path)
 	else
 		return false
 	end
+end
+
+function fs.create_file(path)
+	local handle = io.open(path, 'w')
+
+	if not handle then
+		return false
+	end
+
+	handle:write('')
+	handle:close()
+
+	return true
+end
+
+function fs.get_file_content(path)
+	local handle = io.open(path, 'r')
+
+	if not handle then
+		error(string.format('"%s" could not be read', path))
+	end
+
+	local contents = handle:read('a')
+	handle:close()
+
+	return contents
+end
+
+function fs.put_file_content(path, content)
+	local handle = io.open(path, 'w')
+
+	if not handle then
+		error(string.format('"%s" could not be read', path))
+	end
+
+	handle:write(content)
+	handle:close()
+
+	return true
 end
 
 function fs.touch(path)
@@ -70,14 +119,30 @@ function fs.remove_directory(path)
 	end
 end
 
-function fs.append_to_file(content, path)
-	local ok = os.execute('echo "' .. content .. '" >> ' .. path)
+function fs.append_to_file(path, content)
+	local handle = io.open(path, 'a')
 
-	if ok then
-		return true
-	else
+	if not handle then
 		return false
 	end
+
+	handle:write("\n" .. content .. "\n")
+	handle:close()
+
+	return true
+end
+
+function fs.write_to_file(content, path)
+	local handle = io.open(path, 'w')
+
+	if not handle then
+		return false
+	end
+
+	handle:write(content)
+	handle:close()
+
+	return true
 end
 
 local function normalize_path(path)
@@ -113,12 +178,15 @@ function fs.read_directory(root)
 		end
 
 		function e:is_directory()
-			local postfix = string.sub(self:path(), #self:path())
-			return postfix == '/'
+			return fs.is_directory(self:path())
 		end
 
 		function e:is_file()
-			return not self:is_directory()
+			return fs.is_file(self:path())
+		end
+
+		function e:is_symlink()
+			return fs.is_symlink(self:path())
 		end
 
 		return e
@@ -137,12 +205,6 @@ function fs.read_directory(root)
 
 	dir:close()
 	return entries
-end
-
-function fs.to_file(str, path)
-	local f = io.open(path, 'w')
-	f:write(str)
-	return f:close()
 end
 
 function fs.allow_exec(path)

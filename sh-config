@@ -1,1 +1,2 @@
 PATH=$PATH:~/.lcm/bin
+LCM_MAP=~/.lcm/lib/map.lua

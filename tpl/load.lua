@@ -1,5 +1,5 @@
 -- helpers
-local function escape_path(path)
+local function escape_pattern(path)
 	return path:gsub('([%(%)%.%%%+%-%*%?%[%^%$])', '%%%1')
 end
 
@@ -43,18 +43,18 @@ debug.sethook(function(_event)
 	local current_file = debug.getinfo(3).source -- the path of the calling file
 
 	_G['lcm_loading_state'] = {
-		module_name=nil, -- the current module name matching the path
+		namespace=nil, -- the current module name matching the path
 		module_root=nil -- the current module root based of the +export+ in chunkfile 
 	}
 
 	for name, path in pairs(_G['lcm_modules']) do
-		local short_module_root = escape_path(fix_path(path):gsub(escape_path(lib_path), ''))
+		local short_module_root = escape_pattern(fix_path(path):gsub(escape_pattern(lib_path), ''))
 		local file = fix_path(current_file)
 
 		-- if we find a matching root path we set the 'current module' metadata
 		if file:find(short_module_root) then
 			_G['lcm_loading_state'].module_root = path
-			_G['lcm_loading_state'].module_name = path_to_module_name(name)
+			_G['lcm_loading_state'].namespace = path_to_module_name(name)
 		end
 	end
 end, 'c')
@@ -65,8 +65,8 @@ require = function(modname)
 	local module_name = modname
 	local lcm_config = _G['lcm_loading_state']
 
-	if lcm_config and lcm_config.module_name then
-		return lr(fix_module_name('lib.' .. lcm_config.module_name .. '.' .. module_name))
+	if lcm_config and lcm_config.namespace then
+		return lr(fix_module_name('lib.' .. lcm_config.namespace .. '.' .. module_name))
 	else
 		return lr(module_name)
 	end
@@ -77,18 +77,18 @@ package.path = package.path .. ';' .. home .. '/.lcm/?.lua'
 
 local loader = {}
 function loader.load(args)
-	local name, path = table.unpack(args)
-	package.loaded[name] = dofile(path)
+	local namespace, path = table.unpack(args)
+	package.loaded[namespace] = dofile(path)
 end
 
 function loader.module(args)
-	local name, path = table.unpack(args)
-	_G['lcm_modules'][name] = path
+	local namespace, path = table.unpack(args)
+	_G['lcm_modules'][namespace] = path
 
 	-- check for init.lua; allows zero export modules
 	local init = loadfile(path .. '/init.lua', 't')
 	if init then
-		package.loaded[name] = init()
+		package.loaded[namespace] = init()
 	end
 end
 

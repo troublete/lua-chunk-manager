@@ -1,79 +1,42 @@
-local fs = require('src.fs')
+local util = {silent=false}
 
-local util = {}
+function util:silence()
+	self.silent = true
+end
 
-function util.download_and_unpack(url, target, user)
-	local archive_file = target .. '/archive.tar'
+function util:curl_file(url, path, args)
+	local user = (args or {}).user
 
-	local ok = false
+	local base = "curl -L -# %s"
+	if self.silent then
+		base = "curl -sL %s"
+	end
+
 	if user then
-		ok = os.execute('curl -u ' .. user .. ' -sL ' .. url .. ' > ' .. archive_file)
+		if os.execute(string.format(string.format(base, url) .. " -u '%s' > %s", user, path)) then
+			return true
+		else
+			return false
+		end
 	else
-		ok = os.execute('curl -sL ' .. url .. ' > ' .. archive_file)
+		if os.execute(string.format(string.format(base, url) .. " > %s", path)) then
+			return true
+		else
+			return false
+		end
 	end
-
-	if not ok then
-		print('download failed')
-		return false
-	end
-
-	if not os.execute('tar -xzf ' .. archive_file .. ' -C ' .. target) then
-		print('unpack failed')
-		return false
-	end
-
-	if not fs.remove_file(archive_file) then
-		print('archive removal failed')
-		return false
-	end
-
-	local archive_root = fs.read_directory(target)[1]
-	if not os.execute('mv ' .. target .. '/' .. tostring(archive_root) .. '/* ' .. target) then
-		print('move failed')
-		return false
-	end
-
-	if not fs.remove_directory(target .. '/' .. tostring(archive_root)) then
-		print('removal failed')
-		return false
-	end
-
-	return true
 end
 
-function util.p(...)
-	print(table.concat(table.pack(...), ' '))
+function util.untar(source, target)
+	if os.execute(string.format('tar -xzf %s -C %s', source, target)) then
+		return true
+	else 
+		return false
+	end
 end
 
-function util.quote(str)
-	return '"' .. str .. '"'
-end
-
-function util.tpl_instruction_load(handle, path)
-	return 'load {\'' .. handle .. '\', \'' .. path .. '\' }'
-end
-
-function util.tpl_instruction_module(handle, path)
-	return 'module {\'' .. handle .. '\', \'' .. path .. '\' }'
-end
-
-function util.tpl_bin(...)
-	local path, file = ...
-	local vars = {path=path, file=file}
-	local tpl = [[
-#!/usr/bin/env lua
-
-package.path = package.path .. ';{path}/?.lua'
-
-require('lib.load')
-dofile('{file}')
-]]
-
-	local bin = tpl:gsub('%{(%w+)%}', function(match)
-		return vars[match]
-	end)
-
-	return bin
+function util.pattern_escape(str)
+	return str:gsub('([%(%)%.%%%+%-%*%?%[%^%$])', '%%%1')
 end
 
 return util

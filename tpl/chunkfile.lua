@@ -13,7 +13,7 @@
 --
 -- GITHUB (private)
 --
--- 		github_private { 'troublete/chunk', 'username:access_token' }
+-- 		github { 'troublete/chunk', {user='username:access_token'}}
 -- 
 -- SYMLINK
 --

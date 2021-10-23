@@ -1,53 +1,47 @@
 local fs = require('src.fs')
+local requires = require('src.requires')
 
 return {
 	run=function(args)
 		if args:has_flag('global') then
-			lib_path = os.getenv('HOME') .. '/.lcm/lib/'
+			current_directory = os.getenv('HOME') .. '/.lcm/'
 		end
 
-		local chunkfile_path = current_directory .. '/chunkfile.lua'
-		local load_file = lib_path .. '/load.lua'
-		local map_file = lib_path .. '/map.lua'
+		requires:unsilence()
+
+		if args:has_flag('silent') then
+			requires:silence()
+		end
 
 		if args:has_flag('deps') then
-			for _, d in ipairs(fs.read_directory(lib_path)) do
-				if d:is_directory() then
-					print('removing "' .. tostring(d) .. '"')
-					if not fs.remove_directory(lib_path .. '/' .. tostring(d)) then
-						print('removing failed')
-					end
-				end
-			end
-
+			requires:removed_dependencies(current_directory)
 			return
 		end
 
-		if fs.remove_file(chunkfile_path) then
-			print('chunkfile removed.')
+		if args:has_flag('bins') then
+			requires:removed_bin_directory(current_directory)
+			return
 		end
 
-		if fs.remove_file(load_file) then
-			print('loadfile removed.')
-		end
-
-		if fs.remove_file(map_file) then
-			print('mapfile removed.')
-		end
-
-		if fs.remove_directory(lib_path) then
-			print('lib path removed.')
-		end
+		requires:removed_bin_directory(current_directory)
+		requires:removed_lib_directory(current_directory)
+		requires:removed_chunkfile(current_directory)
 	end,
 	help={
 		handle='clean',
-		title='clean up LCM structures',
+		title='clean up lcm structures',
 		flags={
 			deps={
-				desc='purge only library contents'
+				desc='remove retrieved dependencies'
 			},
 			global={
-				desc='runs a clean command on global depot'
+				desc='run in global lcm depot'
+			},
+			silent={
+				desc='ommits any output'
+			},
+			bins={
+				desc='remove only executables'
 			}
 		}
 	}

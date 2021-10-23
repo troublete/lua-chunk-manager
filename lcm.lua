@@ -1,8 +1,3 @@
-local lua_print = print
-print = function(...)
-	lua_print('lcm:', ...)
-end
-
 local function base_path(path)
 	local path, matches = string.gsub(path, '(.*)/(.*)$', '%1')
 
@@ -13,10 +8,12 @@ local function base_path(path)
 	end
 end
 
+table.unpack = (unpack or table.unpack)
+
 -- set the path relevant global
 -- project paths
 current_directory = os.getenv('PWD') -- the directory of the project
-lib_path = current_directory .. '/lib/' -- the lib path in the project
+lib_path = current_directory .. '/lib/' -- the lib path in the project; todo: remove
 
 -- lcm paths
 lcm_directory = base_path(debug.getinfo(1).short_src) -- the directory of lcm
@@ -28,11 +25,14 @@ package.path = package.path .. ';' .. lcm_directory .. '?.lua'
 local cli = require('src.cli') -- tool wrapper
 cli:set_flag_map({
 	['help']='h',
-	['global']='g'
+	['global']='g',
+	['silent']='s'
 })
 
-cli:command('clean', require('cmd.clean'))
+cli:command({'clean', 'c'}, require('cmd.clean'))
 cli:command('init', require('cmd.init'))
-cli:command('install', require('cmd.install'))
+cli:command({'install', 'i'}, require('cmd.install'))
+cli:command('add', require('cmd.add'))
+cli:command('fix', require('cmd.fix'))
 
 cli:run()

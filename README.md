@@ -29,6 +29,10 @@ security problems.
 
 - handle in strategy is converted to '.'-notation
 - require `lib.load`; then require everything you want
+- github
+	- public/private
+	- named => multiversion
+- explain add (also PWD install (lcm add symlink:namespace,$PWD))
 
 ### Exposing a chunk/library/repo/...
 
@@ -59,9 +63,7 @@ security problems.
 - implement toolkit for +register_strategy+ to use (e.g. check if directory
   exists, create dir, execute download)
 - implement runtime cache
-- implement 'add' command
-- implement direct install when within lib and hit lcm install
-- implement 'init lib mode' (omit loader and map and lib)
-- allow import with alias (to allow multi version, etc)
 - clean up
 - docs
+- make windows able
+- rebuild fs to use src.log
