@@ -21,7 +21,7 @@ local function parsed_arguments(flag_map)
 				local flag = string.sub(v, 3)
 				local name, value = flag:match('^(.+)%=(.+)$')
 
-				args.flags[flag] = true
+				args.flags[name or flag] = true
 
 				if name and value then
 					args.named_args[name] = value

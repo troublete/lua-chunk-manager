@@ -1,5 +1,5 @@
 local log = require('src.log')()
-local plan = {}
+local plan = {environment=nil}
 
 -- this method checks if a certain chunk is already registered in the plan; to
 -- be used to make sure that only unique namespaces (names) are added to
@@ -23,6 +23,10 @@ function plan:silence()
 	log:silence()
 end
 
+function plan:set_env(env)
+	self.environment = env
+end
+
 function plan:add(strategy, args)
 	-- we need to extract some kind of namespace
 	-- to be used for duplication checks
@@ -39,8 +43,10 @@ end
 
 function plan:each(func)
 	for _, e in ipairs(self) do
-		log:print(string.format('\ntrying strategy "%s" for namespace "%s"', e.strategy, e.namespace))
-		func(e.strategy, e.namespace, e.arguments)
+		if not self.environment or (e.arguments.env and self.environment == e.arguments.env) then
+			log:print(string.format('\ntrying strategy "%s" for namespace "%s"', e.strategy, e.namespace))
+			func(e.strategy, e.namespace, e.arguments)
+		end
 	end
 end
 

@@ -5,7 +5,7 @@
 ## About
 
 The Lua Chunk Manager aims to be a simpler toolkit for reusing lua chunks
-(as dependencies) and distributing lua code (as scripts, libs, ...).
+(as dependencies/libs) and distributing lua code (as scripts, libs, ...).
 
 I created this tool because i wanted to have a simpler tooling for my own lua
 and love2d projects. I am fully aware that there is a thing
@@ -65,3 +65,4 @@ security problems.
 - docs
 - make windows able
 - rebuild fs to use src.log
+- make failure tolerant (install try every step, don't exit)

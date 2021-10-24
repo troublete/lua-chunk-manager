@@ -23,6 +23,11 @@ return {
 			strategies:silence()
 		end
 
+		if args:has_flag('env') then
+			plan:set_env(args.named_args.env)
+			log:print(string.format('running in "%s" environment', args.named_args.env))
+		end
+
 		local _, chunkfile_path = requires:chunkfile(current_directory)
 
 		-- set allowed functions
