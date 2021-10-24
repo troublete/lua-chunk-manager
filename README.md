@@ -22,7 +22,7 @@ distributing a lua script across a few machines.
 ## Demo
 
 `chunkfile.lua` is the essential part that defines an projects exports,
-requirements and executable exports. Therefore below and example with all of
+requirements and executable exports. Therefore below an example with all of
 them. But you only define what you need, no pressure to use all of them
 always. And in fact if there is an `init.lua` you need no `chunkfile.lua` at
 all, the 'autoloader' will find it.
