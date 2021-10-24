@@ -34,5 +34,6 @@ cli:command('init', require('cmd.init'))
 cli:command({'install', 'i'}, require('cmd.install'))
 cli:command('add', require('cmd.add'))
 cli:command('fix', require('cmd.fix'))
+cli:command({'list', 'ls'}, require('cmd.list'))
 
 cli:run()
