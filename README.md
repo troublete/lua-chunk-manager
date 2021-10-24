@@ -25,7 +25,19 @@ distributing a lua script across a few machines.
 requirements and executable exports. Therefore below an example with all of
 them. But you only define what you need, no pressure to use all of them
 always. And in fact if there is an `init.lua` you need no `chunkfile.lua` at
-all, the 'autoloader' will find it.
+all, the 'autoloader' will find your requirement.
+
+Some more info:
+
+- Requirements are installed 'recursively', so requirements requirements are
+  loaded aswell; unless they are already available.
+
+- Uniqueness of requirements is defined by their respective `namespaces`, so
+  multiple versions or even instances of the same lib can be used, when named
+  differently.
+
+- `namespaces` can contain `/` (to create nested directories) and will be
+  converted to `.`-notation to be loadable.
 
 ```lua
 -- chunkfile.lua
@@ -60,7 +72,8 @@ github { 'user/repo', user='user:api_token' }
 github { 'user/repo', at='v1.0.0' }
 -- can be required with: `require('user.repo')`
 
--- adding requirement (applies to `symlink` aswell) with 'custom' namespace (e.g. to allow multiple versions)
+-- adding requirement (applies to `symlink` aswell) with 'custom' namespace
+-- (e.g. to allow multiple versions)
 github { 'user/repo', namespace='other_name'}
 -- can be required with: `require('other_name')`
 
@@ -79,9 +92,15 @@ bin { 'relative/file/path.lua', 'fancy_name' }
 
 ```lua
 -- example: test.lua
+-- after running `lcm install` with the `chunkfile.lua` above
+-- your project needs to require the 'autoloader' (located
+-- in the `lib` directory, alongside the requirements)
+-- then all requirements can be used
 
 require('lib.load')
 local repo = require('user.repo')
+local other = require('other_name')
+
 ...
 ```
 
@@ -99,7 +118,7 @@ location; you setting a new location beforehand
 (`LCM_HOME=*your/path/of/chosing*`). 
 
 The `LCM_HOME` contains all system wide available scripts and libraries that
-were installed 'globally', including itself.
+were installed 'globally' (see flag `--global`), including itself.
 
 After installing it you shoud be able to run `lcm --help` and see the help
 screen.
@@ -172,3 +191,4 @@ security problems.
 - make windows able
 - rebuild fs to use src.log
 - make failure tolerant (install try every step, don't exit)
+- allow "build" step in chunkfile, to allow creation of `*.so` libs
