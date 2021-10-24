@@ -4,7 +4,7 @@ local fs = require('src.fs')
 
 local cmd = require('src.command')('init', 'initialize chunk', function(args)
 	if args:has_flag('global') then
-		current_directory = os.getenv('HOME') .. '/.lcm/'
+		current_directory = lcm_home
 	end
 
 	requires:unsilence()

@@ -16,7 +16,8 @@ current_directory = os.getenv('PWD') -- the directory of the project
 lib_path = current_directory .. '/lib/' -- the lib path in the project; todo: remove
 
 -- lcm paths
-lcm_directory = base_path(debug.getinfo(1).short_src) -- the directory of lcm
+lcm_directory = base_path(debug.getinfo(1).short_src) -- the directory of current lcm
+lcm_home = os.getenv('LCM_HOME') or os.getenv('HOME') .. '/.lcm/'
 
 -- reference the current lcm path so the
 -- support packages can be loaded

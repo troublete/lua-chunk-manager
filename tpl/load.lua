@@ -24,6 +24,7 @@ local function clean_path(path)
 end
 
 local home = os.getenv('HOME')
+local lcm_home = (os.getenv('LCM_HOME') or home .. '/.lcm/')
 
 -- this table holds all root directory paths from all chunks
 _G['lcm_modules'] = {}
@@ -73,7 +74,7 @@ require = function(modname)
 end
 
 -- allow global lcm depot to be used
-package.path = package.path .. ';' .. home .. '/.lcm/?.lua'
+package.path = package.path .. ';' .. lcm_home .. '/?.lua'
 
 local loader = {}
 function loader.load(args)
@@ -95,7 +96,7 @@ end
 local lcm_global_loaded = false
 
 -- try to load global lcm depot
-local global_map = loadfile(home .. '/.lcm/lib/map.lua', 't', loader)
+local global_map = loadfile(lcm_home .. '/lib/map.lua', 't', loader)
 if global_map then
 	global_map()
 	lcm_global_loaded = true

@@ -1,26 +1,30 @@
-mkdir -p ~/.lcm/current/
+if [ -z $LCM_HOME ]; then
+	LCM_HOME=$HOME/.lcm/
+fi
+
+mkdir -p $LCM_HOME/current/
 
 echo 'fetching latest lcm'
-curl -u 'troublete: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' -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > ~/.lcm/current.tar
+curl -u 'troublete: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' -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > $LCM_HOME/current.tar
 
 echo 'extracting...'
-tar -xzf ~/.lcm/current.tar -C ~/.lcm/current/
-extracted=`ls ~/.lcm/current/ | head -1`
+tar -xzf $LCM_HOME/current.tar -C $LCM_HOME/current/
+extracted=`ls $LCM_HOME/current/ | head -1`
 
 echo 'moving...'
-cp -r ~/.lcm/current/$extracted/* ~/.lcm
+cp -r $LCM_HOME/current/$extracted/* ~/.lcm
 
 echo 'cleaning...'
-rm ~/.lcm/current.tar
-rm -rf ~/.lcm/current
+rm $LCM_HOME/current.tar
+rm -rf $LCM_HOME/current
 
 echo 'configuring shell...'
 if ! cat /etc/profile | grep '# load lcm config'; then
-	sudo bash -c "echo $'if [ -f ~/.lcm/sh-config ]; then\nsource ~/.lcm/sh-config # load lcm config\nfi' >> /etc/profile"
+	sudo bash -c "echo $'LCM_HOME=$LCM_HOME\nif [ -f $LCM_HOME/sh-config ]; then\nsource ~/.lcm/sh-config # load lcm config\nfi' >> /etc/profile"
 fi
 
-source ~/.lcm/sh-config
+source $LCM_HOME/sh-config
 echo 'setting up lcm for usage...'
-cd ~/.lcm && lua lcm.lua init -g && lua lcm.lua install -g
+cd $LCM_HOME && lua lcm.lua init -g && lua lcm.lua install -g
 
 echo $'done.\nYou might have to restart your terminal.'

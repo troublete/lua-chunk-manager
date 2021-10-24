@@ -20,7 +20,7 @@ end
 
 local cmd = require('src.command')('fix', 'fixes chunk problems', function(args)
 	if args:has_flag('global') then
-		current_directory = os.getenv('HOME') .. '/.lcm/'
+		current_directory = lcm_home
 	end
 
 	if args:has_flag('silent') then

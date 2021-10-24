@@ -6,7 +6,7 @@ local template = require('src.template')
 
 local cmd = require('src.command')('add', 'add a new requirement', function(args)
 	if args:has_flag('global') then
-		current_directory = os.getenv('HOME') .. '/.lcm/'
+		current_directory = lcm_home
 	end
 
 	if args:has_flag('silent') then

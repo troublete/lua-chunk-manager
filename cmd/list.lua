@@ -4,7 +4,7 @@ local log = require('src.log')()
 
 local cmd = require('src.command')('list', 'lists all installed requirements', function(args)
 	if args:has_flag('global') then
-		current_directory = os.getenv('HOME') .. '/.lcm/'
+		current_directory = lcm_home
 	end
 
 	local _, map_path = requires:mapfile(current_directory)

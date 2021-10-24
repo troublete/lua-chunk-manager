@@ -7,7 +7,7 @@ local template = require('src.template')
 
 local cmd = require('src.command')('install', 'process chunkfile; install requirements', function(args)
 	if args:has_flag('global') then
-		current_directory = os.getenv('HOME') .. '/.lcm/'
+		current_directory = lcm_home
 	end
 
 	strategies:set_current_directory(current_directory)

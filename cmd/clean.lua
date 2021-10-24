@@ -3,7 +3,7 @@ local requires = require('src.requires')
 
 local cmd = require('src.command')('clean', 'clean/purge chunk files and structures', function(args)
 	if args:has_flag('global') then
-		current_directory = os.getenv('HOME') .. '/.lcm/'
+		current_directory = lcm_home
 	end
 
 	requires:unsilence()
