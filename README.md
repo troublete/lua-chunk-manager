@@ -5,20 +5,85 @@
 ## About
 
 The Lua Chunk Manager aims to be a simpler toolkit for reusing lua code chunks
-(as dependencies/libs) and distributing lua code (as executable scripts,
+(as dependencies) and distributing lua code (as executable scripts,
 libs, ...).
 
-I created this toolkit because i wanted to have a simpler tooling for my own
-lua and love2d projects, which is not really dependent on the fact that some
-piece of code is published somewhere. For the start i added two simple
-strategies to fetch requirements `github` and local `symlink` (read more
-about it in the `chunkfile` section).
+I created this toolkit because i wanted to have simpler tooling for my own lua
+and love2d project for managing requirements which does not depend on a
+registry by default, since a lot of libs are simply on Github. So initially
+there are two strategies for adding requirements: `github` and `symlink`.
 
 I am fully aware that there is a thing called **luarocks**, but i personally
 prefer not to use it. The reasons for this are quite simple: i don't want to
 depend on a registry and it is too lavish to create and publish new rocks for
 simple purposes like sharing a chunk written in 5 minutes or quickly
 distributing a lua script across a few machines.
+
+## Demo
+
+`chunkfile.lua` is the essential part that defines an projects exports,
+requirements and executable exports. Therefore below and example with all of
+them. But you only define what you need, no pressure to use all of them
+always. And in fact if there is an `init.lua` you need no `chunkfile.lua` at
+all, the 'autoloader' will find it.
+
+```lua
+-- chunkfile.lua
+-- for the demo assume that the library namespace is 'example'
+
+-- EXPORTING --
+
+-- for exposing some file as default export
+-- but in reality there is no need for this export IF there is an `init.lua`.
+export { 'relative_path/to/file.lua' }
+-- will be the file returned when namespace is required: `require('example')`
+
+-- for exposing some file as named export
+export { 'relative/path/to/file.lua', 'additional'}
+-- will be the file returned when namespace is required: `require('example.additional')`
+
+-- REQUIRING --
+
+-- adding local directory as requirement
+symlink { 'namespace', '/local/absolute/path' }
+-- can be required with: `require('namespace')`
+
+-- adding public github repo as requirement
+github { 'user/repo' }
+-- can be required with: `require('user.repo')`
+
+-- adding private github repo as requirement
+github { 'user/repo', user='user:api_token' }
+-- can be required with: `require('user.repo')`
+
+-- adding github repo with different version then master (which is default)
+github { 'user/repo', at='v1.0.0' }
+-- can be required with: `require('user.repo')`
+
+-- adding requirement (applies to `symlink` aswell) with 'custom' namespace (e.g. to allow multiple versions)
+github { 'user/repo', namespace='other_name'}
+-- can be required with: `require('other_name')`
+
+-- EXECUTABLES -- 
+
+-- adding a executable in `bin` directory
+bin { 'relative/file/path.lua' }
+-- can be used when installed globally as `path`
+-- can be used when installed locally as `./bin/path
+
+-- adding a named executable in `bin` directory
+bin { 'relative/file/path.lua', 'fancy_name' }
+-- can be used when installed globally as `fancy_name`
+-- can be used when installed locally as `./bin/fancy_name
+```
+
+```lua
+-- example: test.lua
+
+require('lib.load')
+local repo = require('user.repo')
+...
+```
 
 ## Install
 
