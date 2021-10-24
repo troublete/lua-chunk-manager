@@ -77,6 +77,10 @@ github { 'user/repo', at='v1.0.0' }
 github { 'user/repo', namespace='other_name'}
 -- can be required with: `require('other_name')`
 
+-- adding requirement (applies to `github` aswell) with 'custom' env
+-- (will only be installed with `lcm install` or `lcm install --env='dev'`)
+symlink { 'simple_lib', '/local/path', env='dev' }
+
 -- EXECUTABLES -- 
 
 -- adding a executable in `bin` directory
