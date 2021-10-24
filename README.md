@@ -39,6 +39,13 @@ Some more info:
 - `namespaces` can contain `/` (to create nested directories) and will be
   converted to `.`-notation to be loadable.
 
+- LCM allows relative paths inside of libs; lets assume there is a lib with
+  namespace `simple_lib`. Lets say for a file that is located in
+  `*simple_lib_path*/src/main.lua`, the require would be on root level `require
+  ('src.main')`; this is remapped to `lib.simple_lib.src.main` by the
+  autoloader when used in scope of the project containing the `chunkfile.lua`
+  and will resolve correctly.
+
 ```lua
 -- chunkfile.lua
 -- for the demo assume that the library namespace is 'example'
@@ -58,24 +65,24 @@ export { 'relative/path/to/file.lua', 'additional'}
 
 -- adding local directory as requirement
 symlink { 'namespace', '/local/absolute/path' }
--- can be required with: `require('namespace')`
+-- can be loaded with: `require('namespace')`
 
 -- adding public github repo as requirement
 github { 'user/repo' }
--- can be required with: `require('user.repo')`
+-- can be loaded with: `require('user.repo')`
 
 -- adding private github repo as requirement
 github { 'user/repo', user='user:api_token' }
--- can be required with: `require('user.repo')`
+-- can be loaded with: `require('user.repo')`
 
 -- adding github repo with different version then master (which is default)
 github { 'user/repo', at='v1.0.0' }
--- can be required with: `require('user.repo')`
+-- can be loaded with: `require('user.repo')`
 
 -- adding requirement (applies to `symlink` aswell) with 'custom' namespace
 -- (e.g. to allow multiple versions)
 github { 'user/repo', namespace='other_name'}
--- can be required with: `require('other_name')`
+-- can be loaded with: `require('other_name')`
 
 -- adding requirement (applies to `github` aswell) with 'custom' env
 -- (will only be installed with `lcm install` or `lcm install --env='dev'`)
