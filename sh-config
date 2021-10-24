@@ -1,4 +1,2 @@
-LCM_HOME='~/.lcm'
 LCM_MAP=$LCM_HOME/lib/map.lua
-
 PATH=$PATH:$LCM_HOME/bin
