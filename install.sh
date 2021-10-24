@@ -22,7 +22,7 @@ rm -rf $LCM_HOME/current
 
 echo 'configuring shell...'
 if ! cat /etc/profile | grep '# load lcm config'; then
-	sudo bash -c "echo $'\nLCM_HOME=$LCM_HOME\nif [ -f $LCM_HOME/sh-config ]; then\nsource $LCM_HOME/sh-config # load lcm config\nfi' >> /etc/profile"
+	sudo bash -c "echo $'\n# lcm-config\nLCM_HOME=$LCM_HOME\nif [ -f $LCM_HOME/sh-config ]; then\nsource $LCM_HOME/sh-config # load lcm config\nfi' >> /etc/profile"
 fi
 
 source $LCM_HOME/sh-config
