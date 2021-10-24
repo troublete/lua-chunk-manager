@@ -60,11 +60,8 @@ security problems.
 
 ## Todo
 
-- implement toolkit for +register_strategy+ to use (e.g. check if directory
-  exists, create dir, execute download)
 - implement runtime cache
 - clean up
 - docs
 - make windows able
 - rebuild fs to use src.log
-- add command to inspect installed modules
