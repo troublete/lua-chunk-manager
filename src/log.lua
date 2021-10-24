@@ -11,12 +11,12 @@ return function()
 
 	function log:print(...)
 		if not log.silent then
-			print(table.concat(table.pack(...), '\t'))
+			print(table.concat({...}, '\t'))
 		end
 	end
 
 	function log:error(...)
-		error(table.concat(table.pack(...), '\t'), 2)
+		error(table.concat({...}, '\t'), 2)
 	end
 
 	return log

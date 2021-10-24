@@ -1,48 +1,35 @@
 local fs = require('src.fs')
 local requires = require('src.requires')
 
-return {
-	run=function(args)
-		if args:has_flag('global') then
-			current_directory = os.getenv('HOME') .. '/.lcm/'
-		end
+local cmd = require('src.command')('clean', 'clean/purge chunk files and structures', function(args)
+	if args:has_flag('global') then
+		current_directory = os.getenv('HOME') .. '/.lcm/'
+	end
 
-		requires:unsilence()
+	requires:unsilence()
 
-		if args:has_flag('silent') then
-			requires:silence()
-		end
+	if args:has_flag('silent') then
+		requires:silence()
+	end
 
-		if args:has_flag('deps') then
-			requires:removed_dependencies(current_directory)
-			return
-		end
+	if args:has_flag('deps') then
+		requires:removed_dependencies(current_directory)
+		return
+	end
 
-		if args:has_flag('bins') then
-			requires:removed_bin_directory(current_directory)
-			return
-		end
-
+	if args:has_flag('bins') then
 		requires:removed_bin_directory(current_directory)
-		requires:removed_lib_directory(current_directory)
-		requires:removed_chunkfile(current_directory)
-	end,
-	help={
-		handle='clean',
-		title='clean up lcm structures',
-		flags={
-			deps={
-				desc='remove retrieved dependencies'
-			},
-			global={
-				desc='run in global lcm depot'
-			},
-			silent={
-				desc='ommits any output'
-			},
-			bins={
-				desc='remove only executables'
-			}
-		}
-	}
-}
+		return
+	end
+
+	requires:removed_bin_directory(current_directory)
+	requires:removed_lib_directory(current_directory)
+	requires:removed_chunkfile(current_directory)
+end)
+
+cmd:add_flag('deps', 'purge installed requirements')
+cmd:add_flag('global', 'run command in LCM_HOME')
+cmd:add_flag('silent', 'omit any output')
+cmd:add_flag('bins', 'purge installed executables')
+
+return cmd

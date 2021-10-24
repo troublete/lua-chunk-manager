@@ -45,29 +45,6 @@ local function parsed_arguments(flag_map)
 	return args
 end
 
-local function print_help(h, flag_map, omit_handle)
-	if not omit_handle then
-		print('', h.handle)
-	else
-		print('')
-	end
-	print('\t', h.title)
-
-	if h.flags then
-		print('')
-		print('')
-		for flag, def in pairs(h.flags) do
-			if flag_map[flag] then
-				print('', '', '--' .. flag .. ', -' .. flag_map[flag])
-			else
-				print('', '', '--' .. flag)
-			end
-
-			print('', '', '',  def.desc)
-		end
-	end
-end
-
 -- MODULE
 local cli = {_commands={}, _flag_map={}}
 
@@ -79,12 +56,19 @@ end
 -- append new command to cli
 function cli:command(name, module)
 	if type(name) == 'string' then
-		self._commands[name] = module
+		self._commands[name] = {module=module, shorthand=false}
 	end
 
 	if type(name) == 'table' then
-		for _, v in ipairs(name) do
-			self._commands[v] = module
+		local main = nil
+		for idx, v in ipairs(name) do
+			self._commands[v] = {module=module, shorthand=(idx ~= 1)}
+
+			if idx == 1 then
+				main = self._commands[v].module
+			else
+				main:add_alias(v)
+			end
 		end
 	end
 end
@@ -95,23 +79,26 @@ function cli:run()
 	local cmd = p.args[1]
 
 	if self._commands[cmd] and not p:has_flag('help') then
-		return self._commands[cmd].run(p)
+		return self._commands[cmd].module:run(p)
 	end
 
 	if self._commands[cmd] and p:has_flag('help') then
-		print(string.format('Usage: lcm %s [args, flags...]', cmd))
-		return print_help(self._commands[cmd].help, self._flag_map, true)
+		print(string.format('Usage: lcm %s [args|flags...]', cmd))
+		return self._commands[cmd].module:print_help(self._flag_map)
 	end
 
 	if p:has_flag('help') then
-		print('Usage: lcm <command> [args, flags...]')
+		print('Usage: lcm <command> [args|flags...]')
 		print('Available commands:')
-		print('')
 		for _, c in pairs(self._commands) do
-			print_help(c.help, self._flag_map)
-			print()
+			if not c.shorthand then
+				c.module:print_help(self._flag_map)
+			end
 		end
+		return
 	end
+
+	print(string.format('Need help? Run `lcm --help [command]` to show more info.'))
 end
 
 return cli
