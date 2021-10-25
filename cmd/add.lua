@@ -4,7 +4,7 @@ local log = require('src.log')()
 local install = require('cmd.install')
 local template = require('src.template')
 
-local cmd = require('src.command')('add', 'add a new requirement', function(args)
+local cmd = require('src.command')('add', 'add a instruction to the chunkfile', function(args)
 	if args:has_flag('global') then
 		current_directory = lcm_home
 	end
@@ -41,7 +41,7 @@ local cmd = require('src.command')('add', 'add a new requirement', function(args
 	end
 
 	if not args:has_flag('no-install') then
-		install.run(args)
+		install:run(args)
 	end
 end)
 
