@@ -27,6 +27,6 @@ fi
 
 source $LCM_HOME/sh-config
 echo 'setting up lcm for usage...'
-lua $LCM_HOME/lcm.lua init && lua $LCM_Home/lcm.lua install
+lua $LCM_HOME/lcm.lua init && lua $LCM_HOME/lcm.lua install
 
 echo $'done.\nYou might have to restart your terminal.'
