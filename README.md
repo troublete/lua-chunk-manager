@@ -2,14 +2,8 @@
 
 > The Lua Chunk Manager 
 
-> General information
-> As of now, this tooling is in 'beta' mode; the command API
-> does not have any plans to be changed radically only additions are planned.
-> As with everything though, faults and errors may arrise. The critical part
-> though, being able to use loaded libraries, is stable and 'production ready'.
->
-> In addition: The toolkit will not work on Windows, only if there is some kind
-> of ?nix Environment available. This should change in the future though.
+> The toolkit does not yet work on Windows, only if there is some kind
+> of ?nix Environment available. This might change in the future though.
 
 ## About
 
@@ -18,26 +12,35 @@ dependencies and distributing lua code (as executable scripts, libs, ...).
 
 I created this toolkit because i wanted to have simpler tooling for my own lua
 and love2d project for managing requirements which does not depend on a
-registry by default, since a lot of libs are just on Github. 
+registry by default, since a lot of libs are just on Github.
 
-I am fully aware that there is a thing called **luarocks**, but i personally
-prefer not to use it. The reasons for this are quite simple: i don't want to
-depend on a registry and it is too lavish to create and publish new rocks for
-simple purposes like sharing a chunk written in 5 minutes or quickly
-distributing a lua script across a few machines.
+## Requirements
+
+* Lua
+* built-in functions:
+	- `bash`
+	- `test`
+	- `mkdir`
+	- `curl`
+	- `rm`
+	- `tar`
+	- `mv`
+	- `wget`
 
 ## Demo
 
-`chunkfile.lua` is the essential part that defines an projects exports,
+`chunkfile.lua` is the essential part that defines an projects' exports,
 requirements and executable exports. Therefore below an example with all of
-them. But you only define what you need, no pressure to use all of them
-always. And in fact if there is an `init.lua` you need no `chunkfile.lua` at
-all, the loader will find your requirement.
+them. But you define what you need, you don't have to use all of them always.
+And in fact if there is an `init.lua` you do not need a `chunkfile.lua` at
+all, `init.lua` will be the default export four your library namespace.
 
 Some more info:
 
-- Requirements are installed 'recursively' so requirements requirements are
+- Requirements are installed 'recursively' so requirements' requirements are
   loaded aswell
+
+- LCM resolves dependencies flat, so no nesting within libs
 
 - Uniqueness of requirements is defined by their respective `namespaces` so
   multiple versions or even instances of the same lib can be used when named
@@ -48,25 +51,28 @@ Some more info:
 
 - LCM allows relative paths inside of libs; e.g. lets assume there is a lib
   with namespace `simple_lib`. For a file that is located in
-  `*simple_lib_path*/src/main.lua` the require would be on lib root level
+  `*simple_lib_path*/src/main.lua` the require would be on lib root level:
   `require('src.main')`. This is remapped to `lib.simple_lib.src.main` by the
   loader when used in scope of the project containing the `chunkfile.lua` and
   will resolve correctly
 
 ```lua
 -- chunkfile.lua
--- for the demo assume that the library namespace is 'example'
 
 -- EXPORTING --
 
+-- lets assume the library is imported with namespace `example`
+
 -- for exposing some file as default export
--- but in reality there is no need for this export IF there is an `init.lua`.
+-- (there is no need for this export if there is an `init.lua`)
 export { 'relative_path/to/file.lua' }
--- will be the file returned when namespace is required: `require('example')`
+-- this will be the file returned when the library
+-- namespace is required: e.g. `require('example')`
 
 -- for exposing some file as named export
 export { 'relative/path/to/file.lua', 'additional'}
--- will be the file returned when namespace is required: `require('example.additional')`
+-- this will be the file returned when namespace is
+-- required: `require('example.additional')`
 
 -- REQUIRING --
 
@@ -86,34 +92,38 @@ github { 'user/repo', user='user:api_token' }
 github { 'user/repo', at='v1.0.0' }
 -- can be loaded with: `require('user.repo')`
 
--- adding requirement (applies to `symlink` aswell) with 'custom' namespace
+-- adding requirement with custom namespace
 -- (e.g. to allow multiple versions)
 github { 'user/repo', namespace='other_name'}
 -- can be loaded with: `require('other_name')`
 
--- adding requirement (applies to `github` aswell) with 'custom' env
+-- adding requirement with custom env
 -- (will only be installed with `lcm install` or `lcm install --env='dev'`)
 symlink { 'simple_lib', '/local/path', env='dev' }
+
+-- `env`, `namespace` apply on any strategy
+-- `at`, `user` apply only on the github strategy
 
 -- EXECUTABLES -- 
 
 -- adding a executable in `bin` directory
 bin { 'relative/file/path.lua' }
--- can be used when installed globally as `path`
+-- can be used when installed globally (-g) as `path`
 -- can be used when installed locally as `./bin/path
 
 -- adding a named executable in `bin` directory
 bin { 'relative/file/path.lua', 'fancy_name' }
--- can be used when installed globally as `fancy_name`
+-- can be used when installed globally (-g) as `fancy_name`
 -- can be used when installed locally as `./bin/fancy_name
 ```
 
 ```lua
 -- example: test.lua
--- after running `lcm install` with the `chunkfile.lua` above
--- your project needs to require the 'autoloader' (located
--- in the `lib` directory, alongside the requirements)
--- then all requirements can be used
+-- after running `lcm install` in the directory with the `chunkfile.lua`
+-- above your project needs to require the 'loader' (located
+-- in the `lib` directory, alongside the requirements).
+-- After that, all requirements can be used.
+-- (checkout 'tpl/load.lua' for details)
 
 require('lib.load')
 local repo = require('user.repo')
@@ -136,7 +146,7 @@ location; you can choose a new location if you like.
 (`export LCM_HOME=*your/path/of/chosing*`)
 
 The `LCM_HOME` contains all system wide available scripts and libraries that
-were installed 'globally' (see flag `--global`), including itself.
+were installed 'globally' (see flag `--global`), including LCM itself.
 
 After installing it you shoud be able to run `lcm --help` and see the help
 screen.
@@ -148,13 +158,13 @@ To uninstall the toolkit run `rm -rf $LCM_HOME` and remove the lines below the
 
 ## Usage
 
-If you want to use locally and globally installed dependencies you NEED to run
-`require('lib.load')` in your entrypoint before requiring any library, except
-the lua std lib. (see `lcm init` for info how to create a `lib/load.lua`)
+If you want to use locally and globally installed dependencies you need to run
+`require('lib.load')` in your entrypoint before requiring any required
+library. (see `lcm init` for info how to create a `lib/load.lua`)
 
 There are several commands available to be run. Below a quick overview with
-some common use-cases. For more info about flags etc. consult the
-`lcm --help` screen.
+some common use-cases. For more info about flags etc. read through the
+`lcm --help` contents.
 
 All commands can be applied on the `LCM_HOME` (in global scope) when run with
 flag `--global` or `-g`.
@@ -166,22 +176,22 @@ it creates following structure.
 
 ```
 .
-├── chunkfile.lua # the chunk config, contains requirements; and exports
+├── chunkfile.lua # the chunk config, contains requirements and exports
 └── lib
     ├── load.lua # the loader, must be required before requiring anyting else; allows the usage of locally and globally installed dependencies
     └── map.lua # a helper map, which contains module load information after `lcm install`
 ```
 
-If you only want to depend on globally installed libs, you can run `lcm
+If you only want to depend on globally installed libs you can run `lcm
 init --loader` and only create `/lib/load.lua`.
 
 If you only want to create a chunk without a specific export file you do not
 need to run init at all, as long as there is a `init.lua` your chunk will be
 require-able.
 
-If you want to create a named export and do not have any else requirements,
-you can run `lcm init --chunkfile` and only create the chunkfile so you can
-setup named exports.
+If you want to create a custom default or named export and don't have
+dependencies, you can run `lcm init --chunkfile` and only create the
+chunkfile so you can setup the exports.
 
 ### `lcm add`
 
@@ -207,11 +217,15 @@ To register a local lib as globally available lib you can run
 Runs `lcm install` after adding instructions, if not wanted run with
 `--no-install`.
 
+There is no `lcm remove` command. If you want to remove a dependency, just
+remove it from the `chunkfile.lua` (and run `lcm fix --lib` to clean the lib
+directory).
+
 ### `lcm install`
 
 Runs idempotent.
 
-Installs requirements and requirements requirements in `lib`.
+Installs requirements and requirements' requirements in `lib`.
 Writes executables to `bin`.
 
 ### `lcm clean`
@@ -219,7 +233,7 @@ Writes executables to `bin`.
 Removes everything (dependencies, bins, config files, ...) when run without
 flags. 
 
-When you want to remove only the installed libs run with `--deps` flag.
+When you want to remove only the installed libs run with `--lib` flag.
 
 When you want to remove only the created executables run with `--bin` flag.
 
@@ -237,20 +251,22 @@ anymore. And rebuilds the `lib/map.lua` to include only available libraries.
 
 List all installed modules. 
 
-If you want to display all additional exports run with `--with-load`.
+If you want to display all additional exports (also called load statements)
+run with `--with-load`.
 
 If you only want to display additional exports run with `--only-load`.
 
 ## Chunkfiles
 
-As stated multiple times the `chunkfile.lua` is your basic chunk config.
+As stated multiple times the `chunkfile.lua` is your obilgatory chunk config.
 
 Every `chunkfile.lua` is execute in a sandbox-ed environment; and only the
 exposed LCM functionality is available. So there should be little
 security problems.
 
 It is quite tolerant though if there is any instruction added that the LCM
-sandbox doesn't know it just ignores it.
+sandbox doesn't know it just ignores it. So it can be used as container for
+more than just LCM config. 
 
 ## On exports
 
@@ -258,8 +274,8 @@ A lib can export one or multiple exports via the `chunkfile.lua`.
 
 Every lib that should be requireable must have at least one default export.
 
-No `chunkfile.lua` is needed though when an `init.lua` is available, which
-will then serve as default export.
+No `chunkfile.lua` is needed when an `init.lua` is available, which will then
+serve as default export.
 
 Provided `export` instructions must use a relative path.
 
@@ -276,32 +292,9 @@ e.g. `export { 'file/other/than/init' }`
 Named exports are for libs that want to expose several files like monorepos
 with multiple utils in several files.
 
-e.g. `export { 'file/other/than/init', 'export one' }`
-
 It is possible to require any file of a module by using the fully qualified
 module name (usually in the form of `lib.some_dependency.path.to.file`).
 
-## Prerequisits
+## License
 
-- *NIX-System (built-in functions)
-	- `test`
-	- `mkdir`
-	- `ls`
-	- `curl`
-	- `touch`
-	- `cp`
-	- `rm`
-	- `echo`
-	- `tar`
-	- `mv`
-- Lua
-
-## Todo
-
-- implement runtime cache
-- clean up
-- docs
-- make windows able
-- rebuild fs to use src.log
-- make failure tolerant (install try every step, don't exit)
-- allow "build" step in chunkfile, to allow creation of `*.so` libs
+MIT © 2021 Willi Eßer 

@@ -12,7 +12,7 @@ local cmd = require('src.command')('clean', 'clean/purge chunk files and structu
 		requires:silence()
 	end
 
-	if args:has_flag('deps') then
+	if args:has_flag('lib') then
 		requires:removed_dependencies(current_directory)
 		return
 	end
@@ -27,7 +27,7 @@ local cmd = require('src.command')('clean', 'clean/purge chunk files and structu
 	requires:removed_chunkfile(current_directory)
 end)
 
-cmd:add_flag('deps', 'purge installed requirements')
+cmd:add_flag('lib', 'purge installed requirements')
 cmd:add_flag('global', 'run command in LCM_HOME')
 cmd:add_flag('silent', 'omit any output')
 cmd:add_flag('bins', 'purge installed executables')

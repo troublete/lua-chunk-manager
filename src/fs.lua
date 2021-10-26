@@ -1,3 +1,4 @@
+local log = require('src.log')()
 local fs = {}
 
 function fs.is_file(path)
@@ -57,7 +58,7 @@ function fs.get_file_content(path)
 	local handle = io.open(path, 'r')
 
 	if not handle then
-		error(string.format('"%s" could not be read', path))
+		log:error(string.format('"%s" could not be read', path))
 	end
 
 	local contents = handle:read('a')
@@ -70,33 +71,13 @@ function fs.put_file_content(path, content)
 	local handle = io.open(path, 'w')
 
 	if not handle then
-		error(string.format('"%s" could not be read', path))
+		log:error(string.format('"%s" could not be read', path))
 	end
 
 	handle:write(content)
 	handle:close()
 
 	return true
-end
-
-function fs.touch(path)
-	local ok = os.execute('touch ' .. path)
-
-	if ok then
-		return true
-	else
-		return false
-	end
-end
-
-function fs.copy_file(source, target)
-	local ok = os.execute('cp ' .. source .. ' ' .. target)
-
-	if ok then
-		return true
-	else
-		return false
-	end
 end
 
 function fs.remove_file(path)
@@ -127,19 +108,6 @@ function fs.append_to_file(path, content)
 	end
 
 	handle:write("\n" .. content .. "\n")
-	handle:close()
-
-	return true
-end
-
-function fs.write_to_file(content, path)
-	local handle = io.open(path, 'w')
-
-	if not handle then
-		return false
-	end
-
-	handle:write(content)
 	handle:close()
 
 	return true

@@ -43,7 +43,7 @@ function strategies:bin(namespace, args)
 	end
 
 	local content = template.executable(current_directory, current_directory .. '/' .. file, runtime)
-	if fs.write_to_file(content, bin_file) then
+	if fs.put_file_content(bin_file, content) then
 		log:print(string.format('executable "%s" created', file_name or namespace))
 	end
 	fs.allow_exec(bin_file)
