@@ -33,7 +33,7 @@ registry by default, since a lot of libs are just on Github.
 requirements and executable exports. Therefore below an example with all of
 them. But you define what you need, you don't have to use all of them always.
 And in fact if there is an `init.lua` you do not need a `chunkfile.lua` at
-all, `init.lua` will be the default export four your library namespace.
+all, `init.lua` will be the default export for your library namespace.
 
 Some more info:
 
