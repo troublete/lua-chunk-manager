@@ -44,6 +44,10 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 		plan:add('symlink', args)
 	end
 
+	function sandbox.tar(args)
+		plan:add('tar', args)
+	end
+
 	local run_chunkfile = loadfile(chunkfile_path, 't', sandbox)
 	if not run_chunkfile then
 		log:error(string.format('"%s" can not be read', chunkfile_path))

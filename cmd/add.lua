@@ -18,7 +18,7 @@ local cmd = require('src.command')('add', 'add a instruction to the chunkfile', 
 	
 	for idx, cmd in ipairs(args.args) do
 		if idx ~= 1 then
-			local method, positional_args = cmd:match('(.+)%:(.+)')
+			local method, positional_args = cmd:match('^([^:]+)%:(.+)')
 
 			local arguments = {}
 			for a in positional_args:gmatch('[^,]+') do

@@ -101,4 +101,49 @@ function strategies:symlink(namespace, args)
 	return namespace_path
 end
 
+-- simple tar download and extract strategy
+function strategies:tar(namespace, args)
+	local url = args[2]
+
+	local _, lib_path = requires:lib_directory(self.current_directory)
+	local code, namespace_path = requires:directory(lib_path .. '/' .. namespace)
+
+	if code == requires.EXISTS then
+		log:print(string.format('lib "%s" already retrived', namespace))
+		return namespace_path, self.ALREADY_REGISTERED
+	end
+
+	local archive_path = namespace_path .. '/archive.tar'
+
+	if self.runtime_args:has_flag('debug') then
+		log:print(string.format('fetching from "%s"', url))
+	end
+
+	local ok, code = util:curl_file(url, archive_path, args)
+	if ok then
+		log:print(string.format('download for "%s" successful', namespace))
+	else
+		log:error(string.format('download failed for "%s" with %s', namespace, tostring(code)))
+	end
+
+	if util.untar(archive_path, namespace_path) then
+		log:print(string.format('extract for "%s" successful', namespace))
+	else
+		log:error(string.format('extract failed for "%s"', namespace))
+	end
+
+	requires:removed_tar_archive(namespace_path)
+
+	local extracted_path = fs.read_directory(namespace_path)[1]
+	if not os.execute(string.format('mv %s/* %s', namespace_path .. '/' .. tostring(extracted_path), namespace_path)) then
+		log:error(string.format('move failed for "%s"', namespace))
+	end
+
+	requires:removed_directory(namespace_path .. '/' .. tostring(extracted_path))
+	log:print(string.format('installed "%s"', namespace))
+
+	return namespace_path
+end
+
+
 return strategies
