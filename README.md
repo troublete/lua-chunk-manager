@@ -101,6 +101,9 @@ github { 'user/repo', namespace='other_name'}
 -- (will only be installed with `lcm install` or `lcm install --env='dev'`)
 symlink { 'simple_lib', '/local/path', env='dev' }
 
+-- also available
+-- tar { '*namespace*', '*url*' } – to fetch a arbitrary tar/tar.gz archive as lib
+
 -- `env`, `namespace` apply on any strategy
 -- `at`, `user` apply only on the github strategy
 
