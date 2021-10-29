@@ -6,6 +6,8 @@ local fs = require('src.fs')
 local template = require('src.template')
 
 local cmd = require('src.command')('install', 'process chunkfile; install requirements', function(args)
+	local runtime_args = args
+
 	if args:has_flag('global') then
 		current_directory = lcm_home
 	end
@@ -69,8 +71,9 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 				end
 			end
 
-			-- when in dependency scope, 'globalize' name and path
-			local pkg = {name=namespace, path=namespace_path}
+			if args.post_install and type(args.post_install) == 'function' and not runtime_args:has_flag('no-post-install') then
+				args.post_install(os.execute, namespace_path)
+			end
 
 			-- extend plan if dependency contains a chunkfile
 			-- and acknowledge exports
@@ -132,5 +135,6 @@ end)
 cmd:add_flag('global', 'run command in LCM_HOME')
 cmd:add_flag('silent', 'omit any output')
 cmd:add_flag('debug', 'enrich output with debug information')
+cmd:add_flag('no-post-install', 'do not run any post_install hook')
 
 return cmd
