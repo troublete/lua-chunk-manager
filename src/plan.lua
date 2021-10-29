@@ -28,24 +28,56 @@ function plan:set_env(env)
 end
 
 function plan:add(strategy, args)
+	local entry = {
+		strategy=strategy,
+		namespace=nil,
+		arguments=nil,
+		_hooks={
+			post_install=nil
+		}
+	}
+
+	function entry:post_install(func)
+		self._hooks.post_install = func
+	end
+
+	function entry:has_post_install()
+		if self._hooks.post_install then
+			return true
+		else
+			return false
+		end
+	end
+
+	function entry:run_post_install(...)
+		if not self._hooks.post_install then
+			return
+		end
+
+		log:print(string.format('running post install for lib "%s"', self.namespace))
+		self._hooks.post_install(...)
+		log:print(string.format('post install done for lib "%s"', self.namespace))
+	end
+
 	-- we need to extract some kind of namespace
 	-- to be used for duplication checks
 	local namespace = (args.namespace or args[1])
 
 	if not self:contains(namespace) then
-		table.insert(plan, {
-			strategy=strategy,
-			namespace=namespace,
-			arguments=args
-		})
+		entry.namespace = namespace
+		entry.arguments = args
+
+		table.insert(plan, entry)
 	end
+
+	return entry
 end
 
 function plan:each(func)
 	for _, e in ipairs(self) do
 		if not self.environment or (e.arguments.env and self.environment == e.arguments.env) then
 			log:print(string.format('\ntrying strategy "%s" for namespace "%s"', e.strategy, e.namespace))
-			func(e.strategy, e.namespace, e.arguments)
+			func(e)
 		end
 	end
 end
