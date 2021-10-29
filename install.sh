@@ -30,7 +30,7 @@ fi
 source $LCM_HOME/sh-config
 echo 'setting up lcm for usage...'
 cd $LCM_HOME && lua lcm.lua init && lua lcm.lua install
-cd $LCM_HOME/bin && cp lcm.tpl.txt lcm && sed -i '' "s/%runtime%/lua/;s#%path%#$PWD#;s#%file%#$PWD/lcm.lua#" lcm
+cd $LCM_HOME && cp bin/lcm.tpl.txt bin/lcm && sed -i '' "s/%runtime%/lua/;s#%path%#$PWD#;s#%file%#$PWD/lcm.lua#" bin/lcm
 chmod +x $LCM_HOME/bin/lcm
 
 echo $'done.\nYou might have to restart your terminal.'
