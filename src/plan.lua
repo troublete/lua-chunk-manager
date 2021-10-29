@@ -41,6 +41,14 @@ function plan:add(strategy, args)
 		self._hooks.post_install = func
 	end
 
+	function entry:has_post_install()
+		if self._hooks.post_install then
+			return true
+		else
+			return false
+		end
+	end
+
 	function entry:run_post_install(...)
 		if not self._hooks.post_install then
 			return

@@ -113,7 +113,7 @@ end)
 symlink { 'simple_lib', '/local/path', env='dev', include_path=true }
 
 -- also available
--- tar { '*namespace*', '*url*' } – to fetch a arbitrary tar/tar.gz archive as lib
+-- tar { '*namespace*', '*url*' } – to fetch an arbitrary tar/tar.gz archive as lib
 
 -- `env`, `namespace`, `post_install` apply on any strategy
 -- `at`, `user` apply only on the github strategy

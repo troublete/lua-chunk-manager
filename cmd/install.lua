@@ -65,7 +65,7 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 			local _, map_path = requires:mapfile(current_directory)
 
 			if code ~= strategies.ALREADY_REGISTERED then
-				if not fs.append_to_file(map_path, template.module_instruction(namespace, namespace_path, args.include_path)) then
+				if not fs.append_to_file(map_path, template.module_instruction(namespace, namespace_path, entry:has_post_install())) then
 					log:error(string.format('library registration for "%s" failed', namespace))
 				else
 					log:print(string.format('library "%s" registered', namespace))
