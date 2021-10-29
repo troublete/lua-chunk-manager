@@ -317,7 +317,3 @@ expose an executable.
 - If your module or some exports of it are not requireable, try running `lcm
   install` again; this will (again) add required loads to the mapfile, which
   sometimes fixes an 'non-loadable' issue
-
-## License
-
-MIT © 2021 Willi Eßer 
