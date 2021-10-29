@@ -4,8 +4,8 @@ function template.load_instruction(namespace, path)
 	return string.format("load { '%s', '%s' }", namespace, path)
 end
 
-function template.module_instruction(namespace, path)
-	return string.format("module { '%s', '%s' }", namespace, path)
+function template.module_instruction(namespace, path, include_path)
+	return string.format("module { '%s', '%s', include_path=%s }", namespace, path, tostring(include_path))
 end
 
 function template.chunkfile_instruction(method, args)

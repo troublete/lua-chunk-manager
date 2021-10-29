@@ -74,7 +74,7 @@ require = function(modname)
 end
 
 -- allow global lcm depot to be used
-package.path = package.path .. ';' .. lcm_home .. '/?.lua'
+package.path = package.path .. ';' .. lcm_home .. '/?.lua;' .. lcm_home .. '/?.so'
 
 local loader = {}
 function loader.load(args)
@@ -90,6 +90,10 @@ function loader.module(args)
 	local init = loadfile(path .. '/init.lua', 't')
 	if init then
 		package.loaded[namespace] = init()
+	end
+
+	if args.include_path then
+		package.path = package.path .. ';' .. path .. '/?.lua;' .. path .. '/?.so'
 	end
 end
 

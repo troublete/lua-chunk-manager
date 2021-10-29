@@ -101,10 +101,19 @@ github { 'user/repo', namespace='other_name'}
 -- (will only be installed with `lcm install` or `lcm install --env='dev'`)
 symlink { 'simple_lib', '/local/path', env='dev' }
 
+-- adding a post_install hook that runs after fetching the library
+-- (exec = os.execute, path = installed lib root)
+tar { 'lrandom', 'http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/lrandom-100.tar.gz', post_install=function(exec, path)
+  exec('cd ' .. path .. ' && make')
+end }
+
+-- add the lib path to the lua search path
+symlink { 'simple_lib', '/local/path', env='dev', include_path=true }
+
 -- also available
 -- tar { '*namespace*', '*url*' } – to fetch a arbitrary tar/tar.gz archive as lib
 
--- `env`, `namespace` apply on any strategy
+-- `env`, `namespace`, `post_install` apply on any strategy
 -- `at`, `user` apply only on the github strategy
 
 -- EXECUTABLES -- 
@@ -126,7 +135,7 @@ bin { 'relative/file/path.lua', 'fancy_name' }
 ```lua
 -- example: test.lua
 -- after running `lcm install` in the directory with the `chunkfile.lua`
--- above your project needs to require the 'loader' (located
+-- above your project needs to require the 'loader' if you want to use the  (located
 -- in the `lib` directory, alongside the requirements).
 -- After that, all requirements can be used.
 -- (checkout 'tpl/load.lua' for details)
@@ -233,6 +242,8 @@ Runs idempotent.
 
 Installs requirements and requirements' requirements in `lib`.
 Writes executables to `bin`.
+
+Run with `--no-post-install` to avoid running any `post_install` scripts.
 
 ### `lcm clean`
 
