@@ -104,9 +104,9 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 					return
 				end
 
-				local path = string.format('%s/lib/%s', current_directory, namespace)
+				local path = string.format('%s/lib/', current_directory)
 
-				local content = template.executable(path, path .. '/' .. file, runtime)
+				local content = template.executable(path, string.format('%s/%s/%s', path, namespace, file), runtime)
 				if fs.put_file_content(bin_file, content) then
 					log:print(string.format('executable "%s" created', file_name or namespace))
 				end
