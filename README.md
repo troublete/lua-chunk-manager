@@ -135,7 +135,7 @@ bin { 'relative/file/path.lua', 'fancy_name' }
 ```lua
 -- example: test.lua
 -- after running `lcm install` in the directory with the `chunkfile.lua`
--- above your project needs to require the 'loader' if you want to use the  (located
+-- above your project needs to require the 'loader' (located
 -- in the `lib` directory, alongside the requirements).
 -- After that, all requirements can be used.
 -- (checkout 'tpl/load.lua' for details)
