@@ -2,10 +2,12 @@ if [ -z $LCM_HOME ]; then
 	LCM_HOME=$HOME/.lcm/
 fi
 
+echo "running for $LCM_HOME"
+
 mkdir -p $LCM_HOME/current/
 
 echo 'fetching latest lcm'
-curl -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > $LCM_HOME/current.tar
+curl -u 'troublete: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' -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > $LCM_HOME/current.tar
 
 
 
@@ -27,6 +29,8 @@ fi
 
 source $LCM_HOME/sh-config
 echo 'setting up lcm for usage...'
-lua $LCM_HOME/lcm.lua init && lua $LCM_HOME/lcm.lua install
+cd $LCM_HOME && lua lcm.lua init && lua lcm.lua install
+cd $LCM_HOME/bin && cp lcm.tpl.txt lcm && sed -i '' "s/%runtime%/lua/;s#%path%#$PWD#;s#%file%#$PWD/lcm.lua#" lcm
+chmod +x $LCM_HOME/bin/lcm
 
 echo $'done.\nYou might have to restart your terminal.'

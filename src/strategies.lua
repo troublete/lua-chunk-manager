@@ -4,10 +4,14 @@ local fs = require('src.fs')
 local util = require('src.util')
 local template = require('src.template')
 
-local strategies = {current_directory=nil}
+local strategies = {current_directory=nil, ALREADY_REGISTERED=1, runtime_args={}}
 
 function strategies:set_current_directory(dir)
 	self.current_directory = dir
+end
+
+function strategies:set_runtime_args(args)
+	self.runtime_args = args
 end
 
 function strategies:silence()
@@ -25,32 +29,6 @@ function strategies:call(name, ...)
 	return self[name](self, ...) 
 end
 
--- strategy for creating 'bin' files; it creates executable scripts in
--- the *current_directory*/bin/ directory with either the file name without
--- extension or the namespace as name; the script adds the current project
--- root to the lua load path and requires the current lib loader before
--- executing the script
-function strategies:bin(namespace, args)
-	local file = args[1]
-	local file_name = namespace:match('([^/]+)%.lua')
-
-	local runtime = ((args or {}).runtime or 'lua')
-
-	local code, bin_file = requires:bin_file(self.current_directory, file_name or namespace, true)
-	if code == requires.EXISTS then
-		log:print(string.format('"%s" already available', file_name or namespace))
-		return
-	end
-
-	local content = template.executable(current_directory, current_directory .. '/' .. file, runtime)
-	if fs.put_file_content(bin_file, content) then
-		log:print(string.format('executable "%s" created', file_name or namespace))
-	end
-	fs.allow_exec(bin_file)
-end
-
-strategies.exec = strategies.bin
-
 -- strategy for fetching libraries from github (public and private) uses
 -- namespace as path, downloads the tar of the required version
 -- (default master) and extracts it; returns namespace path to be used for
@@ -63,12 +41,18 @@ function strategies:github(namespace, args)
 	local code, namespace_path = requires:directory(lib_path .. '/' .. namespace)
 
 	if code == requires.EXISTS then
-		log:print(string.format('"%s" already retrived', namespace))
-		return
+		log:print(string.format('lib "%s" already retrived', namespace))
+		return namespace_path, self.ALREADY_REGISTERED
 	end
 
 	local archive_path = namespace_path .. '/archive.tar'
-	local ok, code = util:curl_file(string.format('https://github.com/%s/tarball/%s/', handle, at), archive_path, args)
+	local url = string.format('https://github.com/%s/tarball/%s/', handle, at)
+
+	if self.runtime_args:has_flag('debug') then
+		log:print(string.format('fetching from "%s"', url))
+	end
+
+	local ok, code = util:curl_file(url, archive_path, args)
 	if ok then
 		log:print(string.format('download for "%s" successful', namespace))
 	else
@@ -102,8 +86,8 @@ function strategies:symlink(namespace, args)
 	local source_directory = args[2]
 
 	if code == requires.EXISTS then
-		log:print(string.format('"%s" already available', namespace))
-		return
+		log:print(string.format('lib "%s" already available', namespace))
+		return namespace_path, self.ALREADY_REGISTERED
 	end
 
 	if namespace:match('%/') then

@@ -1,5 +1,4 @@
 lib/*
-!tpl/chunkfile.lua
-test.lua
 bin/*
+!bin/lcm.tpl.txt
 test.lua

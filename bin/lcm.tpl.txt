@@ -1,0 +1,6 @@
+#!/usr/bin/env %runtime%
+
+package.path = package.path .. ';%path%/?.lua'
+
+require('lib.load')
+dofile('%file%')

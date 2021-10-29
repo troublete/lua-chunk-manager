@@ -17,7 +17,7 @@ registry by default, since a lot of libs are just on Github.
 ## Requirements
 
 * Lua
-* built-in functions:
+* built-in tools and functions:
 	- `bash`
 	- `test`
 	- `mkdir`
@@ -51,7 +51,7 @@ Some more info:
 
 - LCM allows relative paths inside of libs; e.g. lets assume there is a lib
   with namespace `simple_lib`. For a file that is located in
-  `*simple_lib_path*/src/main.lua` the require would be on lib root level:
+  `*simple_lib_path*/src/main.lua` the require would be on lib level:
   `require('src.main')`. This is remapped to `lib.simple_lib.src.main` by the
   loader when used in scope of the project containing the `chunkfile.lua` and
   will resolve correctly
@@ -105,6 +105,9 @@ symlink { 'simple_lib', '/local/path', env='dev' }
 -- `at`, `user` apply only on the github strategy
 
 -- EXECUTABLES -- 
+
+-- is only be available when used in requirement context (i.e. the lib is
+-- required)
 
 -- adding a executable in `bin` directory
 bin { 'relative/file/path.lua' }
@@ -212,10 +215,10 @@ symlink { 'name', '/Path/to/lib', user = 'user:some_api_token' }
 ```
 
 To register a local lib as globally available lib you can run
-`lcm add -g symlink:name,$PWD`.
+`lcm add -g symlink:name,$PWD` when in project root.
 
-Runs `lcm install` after adding instructions, if not wanted run with
-`--no-install`.
+This command runs `lcm install` after adding instructions, if not wanted run
+with `--no-install`.
 
 There is no `lcm remove` command. If you want to remove a dependency, just
 remove it from the `chunkfile.lua` (and run `lcm fix --lib` to clean the lib
@@ -231,7 +234,8 @@ Writes executables to `bin`.
 ### `lcm clean`
 
 Removes everything (dependencies, bins, config files, ...) when run without
-flags. 
+flags (in global scope the `/lib` and `/bin` directories can not be removed
+that way to assure the integrity of the tooling). 
 
 When you want to remove only the installed libs run with `--lib` flag.
 
@@ -294,6 +298,25 @@ with multiple utils in several files.
 
 It is possible to require any file of a module by using the fully qualified
 module name (usually in the form of `lib.some_dependency.path.to.file`).
+
+## On executables
+
+Executables can be exposed by any lib, but are only created when this lib is
+installed. Locally (during development) it is assumed that the lua file can
+be called via `lua file.lua`.
+
+You can either use the `bin { ... }` or the `exec { ... }` instruction to
+expose an executable.
+
+## Tips & Troubleshooting
+
+- LCM does not create a `.gitignore` by default, but it might in some cases be
+  a good idea to create one to not push `lib` and `bin` to the remote
+  repository
+
+- If your module or some exports of it are not requireable, try running `lcm
+  install` again; this will (again) add required loads to the mapfile, which
+  sometimes fixes an 'non-loadable' issue
 
 ## License
 

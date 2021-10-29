@@ -11,6 +11,7 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 	end
 
 	strategies:set_current_directory(current_directory)
+	strategies:set_runtime_args(args)
 
 	if args:has_flag('debug') then
 		requires:unsilence()
@@ -38,11 +39,9 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 	function sandbox.github(args)
 		plan:add('github', args)
 	end
+
 	function sandbox.symlink(args)
 		plan:add('symlink', args)
-	end
-	function sandbox.bin(args)
-		plan:add('bin', args)
 	end
 
 	local run_chunkfile = loadfile(chunkfile_path, 't', sandbox)
@@ -52,22 +51,28 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 	run_chunkfile()
 
 	plan:each(function(strategy, namespace, args)
-		local namespace_path = strategies:call(strategy, namespace, args)
+		local namespace_path, code = strategies:call(strategy, namespace, args)
 
 		if namespace_path then
 			-- register module in load file
 			local _, map_path = requires:mapfile(current_directory)
 
-			if not fs.append_to_file(map_path, template.module_instruction(namespace, namespace_path)) then
-				log:error(string.format('library registration for "%s" failed', namespace))
-			else
-				log:print(string.format('library "%s" registered', namespace))
+			if code ~= strategies.ALREADY_REGISTERED then
+				if not fs.append_to_file(map_path, template.module_instruction(namespace, namespace_path)) then
+					log:error(string.format('library registration for "%s" failed', namespace))
+				else
+					log:print(string.format('library "%s" registered', namespace))
+				end
 			end
+
+			-- when in dependency scope, 'globalize' name and path
+			local pkg = {name=namespace, path=namespace_path}
 
 			-- extend plan if dependency contains a chunkfile
 			-- and acknowledge exports
 			local code, chunkfile_path = requires:chunkfile(namespace_path, true) 
 
+			-- allow registration of custom named exports
 			local function export(args)
 				local file, name = table.unpack(args)
 
@@ -85,6 +90,32 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 			-- allow both names
 			sandbox.export = export
 			sandbox.exports = export
+
+			-- allow definition of executables
+			local function bin(args)
+				local file = args[1]
+				local file_name = namespace:match('([^/]+)%.lua')
+
+				local runtime = ((args or {}).runtime or 'lua')
+
+				local code, bin_file = requires:bin_file(current_directory, file_name or namespace, true)
+				if code == requires.EXISTS then
+					log:print(string.format('executable "%s" already available', file_name or namespace))
+					return
+				end
+
+				local path = string.format('%s/lib/%s', current_directory, namespace)
+
+				local content = template.executable(path, path .. '/' .. file, runtime)
+				if fs.put_file_content(bin_file, content) then
+					log:print(string.format('executable "%s" created', file_name or namespace))
+				end
+
+				fs.allow_exec(bin_file)
+			end
+
+			sandbox.bin = bin
+			sandbox.exec = bin
 
 			if code == requires.EXISTS then
 				local run_child_chunkfile = loadfile(chunkfile_path, 't', sandbox)
