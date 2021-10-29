@@ -2,3 +2,4 @@ lib/*
 bin/*
 !bin/lcm.tpl.txt
 test.lua
+chunkfile.lua
