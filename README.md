@@ -103,9 +103,11 @@ symlink { 'simple_lib', '/local/path', env='dev' }
 
 -- adding a post_install hook that runs after fetching the library
 -- (exec = os.execute, path = installed lib root)
-tar { 'lrandom', 'http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/lrandom-100.tar.gz', post_install=function(exec, path)
+local lrandom = tar { 'lrandom', 'http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/lrandom-100.tar.gz' }
+
+lrandom:post_install(function(exec, path)
   exec('cd ' .. path .. ' && make')
-end }
+end)
 
 -- add the lib path to the lua search path
 symlink { 'simple_lib', '/local/path', env='dev', include_path=true }
@@ -118,8 +120,8 @@ symlink { 'simple_lib', '/local/path', env='dev', include_path=true }
 
 -- EXECUTABLES -- 
 
--- is only be available when used in requirement context (i.e. the lib is
--- required)
+-- is only be available when used in requirement context (i.e. when the lib is
+-- installed)
 
 -- adding a executable in `bin` directory
 bin { 'relative/file/path.lua' }
@@ -140,7 +142,7 @@ bin { 'relative/file/path.lua', 'fancy_name' }
 -- After that, all requirements can be used.
 -- (checkout 'tpl/load.lua' for details)
 
-require('lib.load')
+require('lib.load') -- mandatory
 local repo = require('user.repo')
 local other = require('other_name')
 
@@ -315,7 +317,7 @@ module name (usually in the form of `lib.some_dependency.path.to.file`).
 
 ## On executables
 
-Executables can be exposed by any lib, but are only created when this lib is
+Executables can be exposed by any lib, but are only created when the lib is
 installed. Locally (during development) it is assumed that the lua file can
 be called via `lua file.lua`.
 
@@ -331,3 +333,7 @@ expose an executable.
 - If your module or some exports of it are not requireable, try running `lcm
   install` again; this will (again) add required loads to the mapfile, which
   sometimes fixes an 'non-loadable' issue
+
+- If you want to 'update' your `lib/load.lua`; remove it an run `lcm
+  init --loader`, this will create a new one from the current version in your
+  LCM install

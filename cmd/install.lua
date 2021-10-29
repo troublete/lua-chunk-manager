@@ -39,15 +39,15 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 	setmetatable(sandbox, {__index=function() return function() end end})
 
 	function sandbox.github(args)
-		plan:add('github', args)
+		return plan:add('github', args)
 	end
 
 	function sandbox.symlink(args)
-		plan:add('symlink', args)
+		return plan:add('symlink', args)
 	end
 
 	function sandbox.tar(args)
-		plan:add('tar', args)
+		return plan:add('tar', args)
 	end
 
 	local run_chunkfile = loadfile(chunkfile_path, 't', sandbox)
@@ -56,7 +56,8 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 	end
 	run_chunkfile()
 
-	plan:each(function(strategy, namespace, args)
+	plan:each(function(entry)
+		local strategy, namespace, args = entry.strategy, entry.namespace, entry.arguments
 		local namespace_path, code = strategies:call(strategy, namespace, args)
 
 		if namespace_path then
@@ -71,8 +72,8 @@ local cmd = require('src.command')('install', 'process chunkfile; install requir
 				end
 			end
 
-			if args.post_install and type(args.post_install) == 'function' and not runtime_args:has_flag('no-post-install') then
-				args.post_install(os.execute, namespace_path)
+			if not runtime_args:has_flag('no-post-install') then
+				entry:run_post_install(os.execute, namespace_path)
 			end
 
 			-- extend plan if dependency contains a chunkfile
