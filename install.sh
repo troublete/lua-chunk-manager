@@ -7,9 +7,7 @@ echo "running for $LCM_HOME"
 mkdir -p $LCM_HOME/current/
 
 echo 'fetching latest lcm'
-curl -u 'troublete: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' -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > $LCM_HOME/current.tar
-
-
+curl -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > $LCM_HOME/current.tar
 
 echo 'extracting...'
 tar -xzf $LCM_HOME/current.tar -C $LCM_HOME/current/
