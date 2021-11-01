@@ -52,9 +52,10 @@ Some more info:
 - LCM allows relative paths inside of libs; e.g. lets assume there is a lib
   with namespace `simple_lib`. For a file that is located in
   `*simple_lib_path*/src/main.lua` the require would be on lib level:
-  `require('src.main')`. This is remapped to `lib.simple_lib.src.main` by the
-  loader when used in scope of the project containing the `chunkfile.lua` and
-  will resolve correctly
+  `require('src.main')`. This is remapped internally to
+  `lib.simple_lib.src.main` by the loader when used in scope of the project
+  containing the `chunkfile.lua` and will resolve correctly;
+  You can also retrieve a single module by using the module name.
 
 ```lua
 -- chunkfile.lua
@@ -88,7 +89,7 @@ github { 'user/repo' }
 github { 'user/repo', user='user:api_token' }
 -- can be loaded with: `require('user.repo')`
 
--- adding github repo with different version then master (which is default)
+-- adding github repo with different state (version, branch, ...) then master (which is default)
 github { 'user/repo', at='v1.0.0' }
 -- can be loaded with: `require('user.repo')`
 
@@ -103,6 +104,8 @@ symlink { 'simple_lib', '/local/path', env='dev' }
 
 -- adding a post_install hook that runs after fetching the library
 -- (exec = os.execute, path = installed lib root)
+-- this feature is intentionally created to run on the consuming side
+-- to minimize security risks
 local lrandom = tar { 'lrandom', 'http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/lrandom-100.tar.gz' }
 
 lrandom:post_install(function(exec, path)
@@ -120,7 +123,7 @@ symlink { 'simple_lib', '/local/path', env='dev', include_path=true }
 
 -- EXECUTABLES -- 
 
--- is only be available when used in requirement context (i.e. when the lib is
+-- is only be available when used in install context (i.e. when the lib is
 -- installed)
 
 -- adding a executable in `bin` directory
@@ -175,9 +178,10 @@ To uninstall the toolkit run `rm -rf $LCM_HOME` and remove the lines below the
 
 ## Usage
 
-If you want to use locally and globally installed dependencies you need to run
-`require('lib.load')` in your entrypoint before requiring any required
-library. (see `lcm init` for info how to create a `lib/load.lua`)
+If you want to only use locally and globally installed dependencies you need
+to require the loader (`require('lib.load')`) in your entrypoint before
+requiring any library. (see `lcm init` for info how to create a
+`lib/load.lua`)
 
 There are several commands available to be run. Below a quick overview with
 some common use-cases. For more info about flags etc. read through the
