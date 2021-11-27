@@ -19,7 +19,7 @@ end
 
 -- clean up path; remove duplicate slashes
 local function fix_path(path)
-	return path:gsub('%/+', '/')
+	return path:gsub('%/+', '/'):gsub('%@', '')
 end
 
 -- the current load file path
@@ -55,7 +55,7 @@ debug.sethook(function(_event)
 		if file:find(short_module_root) then
 			_G['lcm_loading_state'] = {
 				namespace = name:gsub('%/+', '.'),
-				directory=file:gsub(escape_pattern(lib_path .. name), ''):gsub('[^/]+%.lua$', '')
+				directory = file:gsub(escape_pattern(lib_path .. name), ''):gsub('[^/]+%.lua$', '')
 			}
 		end
 	end
