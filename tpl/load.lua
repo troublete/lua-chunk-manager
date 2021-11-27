@@ -53,7 +53,10 @@ debug.sethook(function(_event)
 
 		-- if we find a matching module path; the module namespace is selected
 		if file:find(short_module_root) then
-			_G['lcm_loading_state'].namespace = name:gsub('%/+', '.')
+			_G['lcm_loading_state'] = {
+				namespace = name:gsub('%/+', '.'),
+				directory=file:gsub(escape_pattern(lib_path .. name), ''):gsub('[^/]+%.lua$', '')
+			}
 		end
 	end
 end, 'c')
@@ -77,7 +80,7 @@ require = function(modname)
 	-- this updates the module name to be library based, if detected that it
 	-- is called within a library
 	if lcm_config and lcm_config.namespace then
-		return lr(('lib.' .. lcm_config.namespace .. '.' .. modname):gsub('%.+', '.'))
+		return lr(('lib.' .. lcm_config.namespace .. '.' .. lcm_config.directory:gsub('%/+', '.') .. '.' .. modname):gsub('%.+', '.'))
 	else
 		return lr(modname)
 	end
