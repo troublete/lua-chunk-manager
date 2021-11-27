@@ -2,12 +2,16 @@ if [ -z $LCM_HOME ]; then
 	LCM_HOME=$HOME/.lcm/
 fi
 
+if [ -z $VERSION ]; then
+	VERSION=master
+fi
+
 echo "running for $LCM_HOME"
 
 mkdir -p $LCM_HOME/current/
 
 echo 'fetching latest lcm'
-curl -sL 'https://github.com/troublete/lua-chunk-manager/tarball/master' > $LCM_HOME/current.tar
+curl -sL "https://github.com/troublete/lua-chunk-manager/tarball/$VERSION" > $LCM_HOME/current.tar
 
 echo 'extracting...'
 tar -xzf $LCM_HOME/current.tar -C $LCM_HOME/current/
