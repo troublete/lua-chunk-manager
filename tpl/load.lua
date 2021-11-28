@@ -1,4 +1,12 @@
+-- to avoid loading lib.load multiple times
+if not _G.loader_registered then
+	_G.loader_registered = true
+else
+	return
+end
+
 _G['lcm_modules'] = {} -- contains module base paths
+_G['lcm_loadables'] = {} -- contains exports of modules
 
 local pwd = os.getenv('PWD')
 local home = os.getenv('HOME')
@@ -11,7 +19,7 @@ end
 
 -- clean up path; remove duplicate slashes
 local function fix_path(path)
-	return path:gsub('%/+', '/')
+	return path:gsub('%/+', '/'):gsub('^%@', '')
 end
 
 -- the current load file path
@@ -30,6 +38,7 @@ package.path = package.path .. ';' .. lcm_home .. '/?.lua'
 -- set up some loading meta information
 -- to allow relative requires; see patched +require+ below
 debug.sethook(function(_event)
+	-- the hook must only be run on require
 	if debug.getinfo(2).name ~= 'require' then
 		return
 	end
@@ -44,7 +53,10 @@ debug.sethook(function(_event)
 
 		-- if we find a matching module path; the module namespace is selected
 		if file:find(short_module_root) then
-			_G['lcm_loading_state'].namespace = name:gsub('%/+', '.')
+			_G['lcm_loading_state'] = {
+				namespace = name:gsub('%/+', '.'),
+				directory = file:gsub(escape_pattern(lib_path .. name), ''):gsub('[^/]+%.lua$', '')
+			}
 		end
 	end
 end, 'c')
@@ -55,8 +67,20 @@ local lr = require
 require = function(modname)
 	local lcm_config = _G['lcm_loading_state']
 
+	-- this loads all loadable defined by libraries to be lazy loaded
+	local loadable = _G['lcm_loadables'][modname]
+	if loadable then
+		if type(loadable) == 'string' then
+			_G['lcm_loadables'][modname] = dofile(loadable)
+		end
+
+		return _G['lcm_loadables'][modname]
+	end
+
+	-- this updates the module name to be library based, if detected that it
+	-- is called within a library
 	if lcm_config and lcm_config.namespace then
-		return lr(('lib.' .. lcm_config.namespace .. '.' .. modname):gsub('%.+', '.'))
+		return lr(('lib.' .. lcm_config.namespace .. '.' .. lcm_config.directory:gsub('%/+', '.') .. '.' .. modname):gsub('%.+', '.'))
 	else
 		return lr(modname)
 	end
@@ -67,7 +91,7 @@ local loader = {}
 -- register named/default exports of libs
 function loader.load(args)
 	local namespace, path = table.unpack(args)
-	package.loaded[namespace] = dofile(path)
+	_G['lcm_loadables'][namespace] = path
 end
 
 -- register module roots

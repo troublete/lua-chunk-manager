@@ -7,10 +7,10 @@
 
 ## About
 
-The Lua Chunk Manager aims to be a simpler toolkit for reusing lua code as
-dependencies and distributing lua code (as executable scripts, libs, ...).
+The Lua Chunk Manager aims to be a simpler toolkit for reusing Lua code as
+dependencies and distributing Lua code (as executable scripts, libs, ...).
 
-I created this toolkit because i wanted to have simpler tooling for my own lua
+I created this toolkit because i wanted to have simpler tooling for my own Lua
 and love2d project for managing requirements which does not depend on a
 registry by default, since a lot of libs are just on Github.
 
@@ -27,7 +27,31 @@ registry by default, since a lot of libs are just on Github.
 	- `mv`
 	- `wget`
 
-## Demo
+## Quickstart
+
+See *[Install](#install)*.
+
+After installing you are able to do the following:
+
+```bash
+$ lcm init // initialize a new LCM project; creates a `lib` directory, an autoloader (which must be used) and a mapfile which contains some load information for dependencies
+// If you don't depend on any lib, and just want to export something `lcm init --chunkfile` is enough
+// If you just want to use system-wide installed modules `lcm init --loader` is enough, which only creates a `lib/load.lua`
+
+$ lcm add github:troublete/some-lib // Add dependency from github
+// to 'install'  a local module via symlink you can run `lcm add symlink:name,/path/to/module/root`
+// to install module system-wide add `-g`
+```
+
+After that you should able to create a `*.lua` file with following contents:
+```lua
+require('lib.load') -- mandatory when using LCM, loads system-wide and 'local' libs; See *On lib.load* for more.
+local sl = require('troublete/some-lib')
+
+...
+```
+
+## Chunkfile Demo
 
 `chunkfile.lua` is the essential part that defines an projects' exports,
 requirements and executable exports. Therefore below an example with all of
@@ -47,7 +71,7 @@ Some more info:
   differently
 
 - `namespaces` can contain `/` (to create nested directories) and will be
-  converted to `.`-notation to be loadable
+  converted to `.`-notation when loaded
 
 - LCM allows relative paths inside of libs; e.g. lets assume there is a lib
   with namespace `simple_lib`. For a file that is located in
@@ -176,7 +200,7 @@ screen.
 To uninstall the toolkit run `rm -rf $LCM_HOME` and remove the lines below the
 `# lcm-config` in `/etc/profile` (the instructions to load `sh-config`).
 
-## Usage
+## Usage / API
 
 If you want to only use locally and globally installed dependencies you need
 to require the loader (`require('lib.load')`) in your entrypoint before
@@ -322,11 +346,47 @@ module name (usually in the form of `lib.some_dependency.path.to.file`).
 ## On executables
 
 Executables can be exposed by any lib, but are only created when the lib is
-installed. Locally (during development) it is assumed that the lua file can
+installed. Locally (during development) it is assumed that the Lua file can
 be called via `lua file.lua`.
 
 You can either use the `bin { ... }` or the `exec { ... }` instruction to
 expose an executable.
+
+## On lib.load
+
+The loader (or the loadfile) – `lib.load` – is an essential part to resolve
+modules and their relative paths. It contains several steps which are
+explained here, to get a better understanding.
+
+1. The loader checks if there was already a loader executed previously
+(by checking a global variable); if not, continues execution – This makes
+sure that even if required modules used the `lib.load` themselves (which they
+most likely do), they try to resolve from the flat dependency tree
+
+2. It registers a hook for require (since `lib.load` MUST always be called
+first); this hook runs before every require call. It tries to locate if the
+require was called within a module or not. If it identifies that it was, it
+will setup runtime variables which then can be used to correctly resolve the
+module.
+
+3. `require` is monkey-patched to do following things in order:
+  * check if there is a export which matches the modname, if so lazy-load it and
+    return it
+  * check if there are runtime variables that determine a module path, if so
+    resolve on module level by using standard Lua require
+  * call the standard Lua require
+
+4. After all this preparation `lib.load` tries to load the global mapfile
+(which contains all exports of system-wide installed modules), after that it
+tries to load the local mapfile (which contains all exports of project
+dependencies). If NEITHER can be load, it will throw an error. Since it is
+assumed that at least one mapfile is availabe when LCM `lib.load` is used.
+
+*lib.load does only modify the load paths of Lua so that ANYTHING in the
+ LCM_HOME can be resolved; OR if a module defines that it's root should be
+ included in the load paths; we don't do it exclusively because this would
+ require that there are no two libraries (ever) with the same name and
+ file structure*
 
 ## Tips & Troubleshooting
 
@@ -337,6 +397,9 @@ expose an executable.
 - If your module or some exports of it are not requireable, try running `lcm
   install` again; this will (again) add required loads to the mapfile, which
   sometimes fixes an 'non-loadable' issue
+
+- To clean up the mapfiles try using `lcm fix --lib`; which tries to rebuild
+  the mapfile based on the `lib` directory
 
 - If you want to 'update' your `lib/load.lua`; remove it an run `lcm
   init --loader`, this will create a new one from the current version in your
