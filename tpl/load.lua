@@ -19,7 +19,7 @@ end
 
 -- clean up path; remove duplicate slashes
 local function fix_path(path)
-	return path:gsub('%/+', '/'):gsub('%@', '')
+	return path:gsub('%/+', '/'):gsub('^%@', '')
 end
 
 -- the current load file path
